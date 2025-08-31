@@ -4,4 +4,4 @@ Aplikasi SplashGo! adalah sistem digital untuk mengelola reservasi, data wisataw
 ## 👤 Kelompok SplashGo!
 - Anggota 1: Muhammad Haidar Syaafi' - 23/521614/TK/57545
 - Anggota 2:
-- Anggota 3:
+- Anggota 3: Indah Nurrohmah - 23/523051/TK/57801
