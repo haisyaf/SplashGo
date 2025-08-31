@@ -7,7 +7,7 @@
 
 ---
 
-# Project Senior Project TI
+# Project Junior Project TI
 
 ## Instansi
 Departemen Teknologi Elektro dan Teknologi Informasi,  
