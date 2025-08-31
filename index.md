@@ -1,40 +1,39 @@
-# 🌊 SplashGo!
-Aplikasi **SplashGo!** adalah sistem digital untuk mengelola reservasi, data wisatawan, dan operasional destinasi laut secara efisien dan terintegrasi.
+# SplashGo!
+
+## Anggota Kelompok
+* Muhammad Haidar Syaafi' (23/521614/TK/57545) - [Peran]
+* Davana Nico Fadla (23/522338/TK/57649) - [Peran]
+* Indah Nurrohmah (23/523051/TK/57801) - [Peran]
 
 ---
 
-## 👥 Nama Kelompok
-**Kelompok SplashGo!**
+# Project Senior Project TI
 
----
-
-## 👤 Anggota dan NIM
-- Muhammad Haidar Syaafi' - 23/521614/TK/57545  
-- Davana Nico Fadla - 23/522338/TK/57649  
-- Indah Nurrohmah - 23/523051/TK/57801  
-
----
-
-## 🎓 Project Senior Project TI
-**"Project Senior Project TI"**
-
----
-
-## 🏫 Instansi
+## Instansi
 Departemen Teknologi Elektro dan Teknologi Informasi,  
-Fakultas Teknik, Universitas Gadjah Mada  
+Fakultas Teknik, Universitas Gadjah Mada
 
 ---
 
-## 📘 Jawaban Modul 1
-**Nama Produk**: SplashGo!  
-**Jenis Produk**: Aplikasi digital berbasis web & mobile  
-**Latar Belakang & Permasalahan**:  
-Destinasi wisata laut sering menghadapi masalah dalam pengelolaan reservasi manual, antrean panjang, dan kurangnya data wisatawan yang terintegrasi. Hal ini menyebabkan pengalaman wisatawan menurun serta efisiensi operasional berkurang.  
+## Jawaban dari Modul 1
 
-**Ide Solusi**:  
-Membangun sistem digital bernama *SplashGo!* yang memungkinkan wisatawan melakukan reservasi online, memudahkan pengelolaan data wisatawan, dan memberikan laporan operasional secara real-time.  
+### Nama Produk
+SplashGo!
 
-**Analisis Kompetitor**:  
-- Beberapa platform reservasi wisata sudah ada (Traveloka, Tiket.com), namun belum spesifik untuk wisata laut dan tidak mengelola operasional internal destinasi.  
-- SplashGo! memberikan keunggulan berupa fokus pada wisata laut, integrasi sistem reservasi dengan data wisatawan, serta dashboard operasional untuk pengelola destinasi.  
+### Jenis Produk
+Web & Mobile Application
+
+### Latar Belakang & Permasalahan
+Destinasi wisata laut sering menghadapi masalah dalam pengelolaan reservasi manual, antrean panjang, serta kurangnya sistem yang mampu mengintegrasikan data wisatawan dengan operasional di lapangan. Hal ini mengakibatkan pengalaman wisatawan berkurang dan efisiensi pengelolaan destinasi menurun.  
+
+### Ide Solusi
+Diperlukan sistem digital terpadu berupa aplikasi **SplashGo!** untuk mendukung pengelolaan reservasi, data wisatawan, serta operasional destinasi laut.  
+
+Fitur yang diusulkan:
+* Reservasi Online
+* Manajemen Data Wisatawan
+* Dashboard & Laporan Operasional
+
+### Analisis Kompetitor
+Beberapa platform besar (Traveloka, Tiket.com) sudah menyediakan layanan reservasi, tetapi belum spesifik untuk destinasi laut serta tidak menyediakan dashboard operasional.  
+**SplashGo!** hadir dengan keunggulan fokus pada wisata laut, integrasi reservasi dengan data wisatawan, dan sistem monitoring operasional real-time.
