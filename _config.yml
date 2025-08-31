@@ -1,4 +1,3 @@
-theme: jekyll-text-theme
-skin: ocean
+theme: minima
 title: SplashGo!
 description: Aplikasi SplashGo! adalah sistem digital untuk mengelola reservasi, data wisatawan, dan operasional destinasi laut secara efisien dan terintegrasi.
