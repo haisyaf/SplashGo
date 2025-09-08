@@ -1,0 +1,15 @@
+D:\521614\SplashGo\SplashGoJunpro\SplashGoJunpro\bin\Debug\SplashGoJunpro.exe.config
+D:\521614\SplashGo\SplashGoJunpro\SplashGoJunpro\bin\Debug\SplashGoJunpro.exe
+D:\521614\SplashGo\SplashGoJunpro\SplashGoJunpro\bin\Debug\SplashGoJunpro.pdb
+D:\521614\SplashGo\SplashGoJunpro\SplashGoJunpro\obj\Debug\SplashGoJunpro.csproj.AssemblyReference.cache
+D:\521614\SplashGo\SplashGoJunpro\SplashGoJunpro\obj\Debug\MainWindow.g.cs
+D:\521614\SplashGo\SplashGoJunpro\SplashGoJunpro\obj\Debug\App.g.cs
+D:\521614\SplashGo\SplashGoJunpro\SplashGoJunpro\obj\Debug\SplashGoJunpro_MarkupCompile.cache
+D:\521614\SplashGo\SplashGoJunpro\SplashGoJunpro\obj\Debug\SplashGoJunpro_MarkupCompile.lref
+D:\521614\SplashGo\SplashGoJunpro\SplashGoJunpro\obj\Debug\MainWindow.baml
+D:\521614\SplashGo\SplashGoJunpro\SplashGoJunpro\obj\Debug\SplashGoJunpro.g.resources
+D:\521614\SplashGo\SplashGoJunpro\SplashGoJunpro\obj\Debug\SplashGoJunpro.Properties.Resources.resources
+D:\521614\SplashGo\SplashGoJunpro\SplashGoJunpro\obj\Debug\SplashGoJunpro.csproj.GenerateResource.cache
+D:\521614\SplashGo\SplashGoJunpro\SplashGoJunpro\obj\Debug\SplashGoJunpro.csproj.CoreCompileInputs.cache
+D:\521614\SplashGo\SplashGoJunpro\SplashGoJunpro\obj\Debug\SplashGoJunpro.exe
+D:\521614\SplashGo\SplashGoJunpro\SplashGoJunpro\obj\Debug\SplashGoJunpro.pdb
