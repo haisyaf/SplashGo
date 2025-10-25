@@ -11,29 +11,29 @@ namespace SplashGoJunpro.Converters
     /// </summary>
     public class PlaceholderVisibilityConverter : IMultiValueConverter
     {
-    public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-    // values[0] = text string (Email atau Password)
-       // values[1] = IsFocused boolean
+            // values[0] = text string (Email atau Password)
+            // values[1] = IsFocused boolean
 
-  if (values.Length != 2)
-    return Visibility.Visible;
+            if (values.Length != 2)
+            return Visibility.Visible;
 
-        string text = values[0] as string;
+            string text = values[0] as string;
             bool isFocused = values[1] is bool && (bool)values[1];
 
-         // Hide placeholder jika:
-  // 1. TextBox sedang focus ATAU
-   // 2. TextBox memiliki text
-   if (isFocused || !string.IsNullOrEmpty(text))
-   return Visibility.Collapsed;
+            // Hide placeholder jika:
+            // 1. TextBox sedang focus ATAU
+            // 2. TextBox memiliki text
+            if (isFocused || !string.IsNullOrEmpty(text))
+            return Visibility.Collapsed;
 
-       return Visibility.Visible;
-  }
+            return Visibility.Visible;
+        }
 
-public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
         {
-        throw new NotImplementedException();
+            throw new NotImplementedException();
         }
     }
 }
