@@ -8,9 +8,9 @@ using SplashGoJunpro.Models;
 namespace SplashGoJunpro.ViewModels
 {
     /// <summary>
-    /// ViewModel for LoginWindow
+    /// ViewModel for RegisterWindow
     /// </summary>
-    public class LoginViewModel : ViewModelBase
+    public class RegisterViewModel : ViewModelBase
     {
         private string _email;
         private string _password;
@@ -83,7 +83,7 @@ namespace SplashGoJunpro.ViewModels
             set
             {
                 if (SetProperty(ref _isPasswordFocused, value))
-                {          
+                {
                     Debug.WriteLine($"Password focus: {value}");
                 }
             }
@@ -93,10 +93,9 @@ namespace SplashGoJunpro.ViewModels
 
         #region Commands
 
-        public ICommand SignInCommand { get; }
-        public ICommand ForgotPasswordCommand { get; }
-        public ICommand GoogleSignInCommand { get; }
         public ICommand SignUpCommand { get; }
+        public ICommand GoogleSignInCommand { get; }
+        public ICommand SignInCommand { get; }
         public ICommand CloseCommand { get; }
 
         #endregion
@@ -104,25 +103,29 @@ namespace SplashGoJunpro.ViewModels
         #region Events
 
         /// <summary>
-        /// Event untuk navigasi ke RegisterWindow
+        /// Event untuk navigasi ke LoginWindow
         /// </summary>
-        public event EventHandler NavigateToRegister;
+        public event EventHandler NavigateToLogin;
+
+        /// <summary>
+        /// Event untuk menutup RegisterWindow setelah registrasi berhasil
+        /// </summary>
+        public event EventHandler RegistrationSuccess;
 
         #endregion
 
         #region Constructor
 
-        public LoginViewModel()
+        public RegisterViewModel()
         {
-            Debug.WriteLine("LoginViewModel initialized");
-            
+            Debug.WriteLine("RegisterViewModel initialized");
+
             // Initialize commands
-            SignInCommand = new RelayCommand(ExecuteSignIn); // ? Removed CanExecute - always enabled
-            ForgotPasswordCommand = new RelayCommand(ExecuteForgotPassword);
-            GoogleSignInCommand = new RelayCommand(ExecuteGoogleSignIn);
             SignUpCommand = new RelayCommand(ExecuteSignUp);
+            GoogleSignInCommand = new RelayCommand(ExecuteGoogleSignIn);
+            SignInCommand = new RelayCommand(ExecuteSignIn);
             CloseCommand = new RelayCommand(ExecuteClose);
-  
+
             Debug.WriteLine("All commands initialized");
         }
 
@@ -131,12 +134,12 @@ namespace SplashGoJunpro.ViewModels
         #region Command Methods
 
         /// <summary>
-        /// Executes Sign In logic
+        /// Executes Sign Up logic
         /// </summary>
-        private void ExecuteSignIn(object parameter)
+        private void ExecuteSignUp(object parameter)
         {
-            Debug.WriteLine("ExecuteSignIn called");
-     
+            Debug.WriteLine("ExecuteSignUp called");
+
             string email = Email?.Trim();
             string password = Password;
 
@@ -144,14 +147,14 @@ namespace SplashGoJunpro.ViewModels
             if (string.IsNullOrWhiteSpace(email))
             {
                 MessageBox.Show("Please enter your email address.", "Validation Error",
-                MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(password))
             {
                 MessageBox.Show("Please enter your password.", "Validation Error",
-                MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -159,38 +162,46 @@ namespace SplashGoJunpro.ViewModels
             if (!IsValidEmail(email))
             {
                 MessageBox.Show("Please enter a valid email address.", "Validation Error",
-                MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            // TODO: Replace with actual authentication service
-            // For now, hardcoded validation
-            if (email == "admin@splashgo.com" && password == "admin123")
+            // Validate password strength
+            if (password.Length < 6)
             {
-                MessageBox.Show("Login successful!", "Success",
-                MessageBoxButton.OK, MessageBoxImage.Information);
-
-                // TODO: Navigate to MainWindow
-                // Application.Current.MainWindow can be used here
-                // or use a navigation service
+                MessageBox.Show("Password must be at least 6 characters long.", "Validation Error",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
             }
-            else
+
+            // TODO: Replace with actual registration service
+            // For now, simulate successful registration
+            try
             {
-                MessageBox.Show("Invalid email or password.", "Login Failed",
-                MessageBoxButton.OK, MessageBoxImage.Error);
+                // Create new user
+                var newUser = new User
+                {
+                    Email = email,
+                    Password = password // Note: In production, hash the password!
+                };
+
+                MessageBox.Show($"Registration successful!\n\nWelcome to SplashGo!\nYou can now sign in with your email: {email}",
+                    "Success",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+
+                // TODO: Save user to database
+                Debug.WriteLine($"User registered: {email}");
+
+                // Trigger navigation to login
+                RegistrationSuccess?.Invoke(this, EventArgs.Empty);
             }
-        }
-
-        /// <summary>
-        /// Executes Forgot Password logic
-        /// </summary>
-        private void ExecuteForgotPassword(object parameter)
-        {
-            MessageBox.Show("Forgot password feature will be implemented soon.\n\n" + "You will receive a password reset link to your email.", "Forgot Password",
-            MessageBoxButton.OK,
-            MessageBoxImage.Information);
-
-            // TODO: Implement forgot password functionality
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Registration failed: {ex.Message}", "Error",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                Debug.WriteLine($"Registration error: {ex}");
+            }
         }
 
         /// <summary>
@@ -198,21 +209,23 @@ namespace SplashGoJunpro.ViewModels
         /// </summary>
         private void ExecuteGoogleSignIn(object parameter)
         {
-            MessageBox.Show("Google Sign-In feature will be implemented soon.\n\n" + "This will allow you to sign in using your Google account.", "Google Sign-In",
-            MessageBoxButton.OK,
-            MessageBoxImage.Information);
+            MessageBox.Show("Google Sign-In feature will be implemented soon.\n\n" +
+                "This will allow you to sign up using your Google account.",
+                "Google Sign-In",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
 
             // TODO: Implement OAuth2 Google Sign-In
         }
 
         /// <summary>
-        /// Executes Sign Up navigation
+        /// Executes Sign In navigation (redirect to login)
         /// </summary>
-        private void ExecuteSignUp(object parameter)
+        private void ExecuteSignIn(object parameter)
         {
-            Debug.WriteLine("Navigating to RegisterWindow");
-            NavigateToRegister?.Invoke(this, EventArgs.Empty);
- }
+            Debug.WriteLine("Navigating to LoginWindow");
+            NavigateToLogin?.Invoke(this, EventArgs.Empty);
+        }
 
         /// <summary>
         /// Closes the application
@@ -232,7 +245,7 @@ namespace SplashGoJunpro.ViewModels
         private bool IsValidEmail(string email)
         {
             if (string.IsNullOrWhiteSpace(email))
-            return false;
+                return false;
 
             try
             {

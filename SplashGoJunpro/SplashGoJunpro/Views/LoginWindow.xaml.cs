@@ -13,8 +13,26 @@ namespace SplashGoJunpro.Views
 
         public LoginWindow()
         {
-            InitializeComponent();
+            // Explicitly qualify InitializeComponent to resolve ambiguity
+            // If there are multiple partial classes for LoginWindow, ensure only one contains InitializeComponent
+            this.InitializeComponent();
             DataContext = new LoginViewModel();
+        
+          // Subscribe to navigation event
+            if (ViewModel != null)
+            {
+    ViewModel.NavigateToRegister += OnNavigateToRegister;
+  }
+        }
+
+        /// <summary>
+        /// Event handler untuk navigasi ke RegisterWindow
+        /// </summary>
+        private void OnNavigateToRegister(object sender, System.EventArgs e)
+        {
+            var registerWindow = new RegisterWindow();
+      registerWindow.Show();
+            this.Close();
         }
 
         /// <summary>
@@ -22,29 +40,29 @@ namespace SplashGoJunpro.Views
         /// </summary>
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.ChangedButton == MouseButton.Left)
-            {
-                this.DragMove();
-            }
+if (e.ChangedButton == MouseButton.Left)
+          {
+          this.DragMove();
+          }
         }
 
         /// <summary>
         /// Event handler saat EmailTextBox mendapat focus
         /// </summary>
-        private void EmailTextBox_GotFocus(object sender, RoutedEventArgs e)
+      private void EmailTextBox_GotFocus(object sender, RoutedEventArgs e)
         {
             if (ViewModel != null)
-                ViewModel.IsEmailFocused = true;
-        }
+         ViewModel.IsEmailFocused = true;
+      }
 
         /// <summary>
-        /// Event handler saat EmailTextBox kehilangan focus
+    /// Event handler saat EmailTextBox kehilangan focus
         /// </summary>
-        private void EmailTextBox_LostFocus(object sender, RoutedEventArgs e)
+     private void EmailTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
-            if (ViewModel != null)
-                ViewModel.IsEmailFocused = false;
-        }
+      if (ViewModel != null)
+        ViewModel.IsEmailFocused = false;
+    }
 
         /// <summary>
         /// Event handler saat PasswordBox mendapat focus
@@ -52,7 +70,7 @@ namespace SplashGoJunpro.Views
         private void PasswordBox_GotFocus(object sender, RoutedEventArgs e)
         {
             if (ViewModel != null)
-                ViewModel.IsPasswordFocused = true;
+       ViewModel.IsPasswordFocused = true;
         }
 
         /// <summary>
@@ -60,8 +78,20 @@ namespace SplashGoJunpro.Views
         /// </summary>
         private void PasswordBox_LostFocus(object sender, RoutedEventArgs e)
         {
+       if (ViewModel != null)
+      ViewModel.IsPasswordFocused = false;
+   }
+
+        /// <summary>
+        /// Clean up event subscriptions
+    /// </summary>
+   protected override void OnClosed(System.EventArgs e)
+        {
             if (ViewModel != null)
-                ViewModel.IsPasswordFocused = false;
+            {
+    ViewModel.NavigateToRegister -= OnNavigateToRegister;
+        }
+          base.OnClosed(e);
         }
     }
 }
