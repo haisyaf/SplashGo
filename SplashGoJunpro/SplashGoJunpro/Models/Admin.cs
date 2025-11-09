@@ -17,7 +17,6 @@ namespace SplashGoJunpro.Models
             //...
         }
 
-
         // Admin can confirm a booking
         public void ConfirmBooking(Booking booking)
         {

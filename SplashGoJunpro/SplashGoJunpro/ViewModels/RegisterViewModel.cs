@@ -1,9 +1,17 @@
+using BCrypt.Net;
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Oauth2.v2;
+using Google.Apis.Oauth2.v2.Data;
+using Google.Apis.Services;
+using SplashGoJunpro.Commands;
+using SplashGoJunpro.Data;
+using SplashGoJunpro.Models;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using System.Windows;
 using System.Windows.Input;
-using SplashGoJunpro.Commands;
-using SplashGoJunpro.Models;
 
 namespace SplashGoJunpro.ViewModels
 {
@@ -12,11 +20,14 @@ namespace SplashGoJunpro.ViewModels
     /// </summary>
     public class RegisterViewModel : ViewModelBase
     {
+        private readonly NeonDb _db;
         private string _email;
         private string _password;
         private bool _rememberMe;
         private bool _isEmailFocused;
         private bool _isPasswordFocused;
+
+
 
         #region Properties
 
@@ -111,6 +122,7 @@ namespace SplashGoJunpro.ViewModels
         /// Event untuk menutup RegisterWindow setelah registrasi berhasil
         /// </summary>
         public event EventHandler RegistrationSuccess;
+        public event EventHandler LoginSuccess;
 
         #endregion
 
@@ -121,6 +133,7 @@ namespace SplashGoJunpro.ViewModels
             Debug.WriteLine("RegisterViewModel initialized");
 
             // Initialize commands
+            _db = new NeonDb(); // initialize here BEFORE calling any method
             SignUpCommand = new RelayCommand(ExecuteSignUp);
             GoogleSignInCommand = new RelayCommand(ExecuteGoogleSignIn);
             SignInCommand = new RelayCommand(ExecuteSignIn);
@@ -136,14 +149,16 @@ namespace SplashGoJunpro.ViewModels
         /// <summary>
         /// Executes Sign Up logic
         /// </summary>
-        private void ExecuteSignUp(object parameter)
+        private async void ExecuteSignUp(object parameter)
         {
             Debug.WriteLine("ExecuteSignUp called");
 
             string email = Email?.Trim();
             string password = Password;
+            string hashedPassword;
 
-            // Validate empty fields
+
+            // Validation
             if (string.IsNullOrWhiteSpace(email))
             {
                 MessageBox.Show("Please enter your email address.", "Validation Error",
@@ -158,7 +173,6 @@ namespace SplashGoJunpro.ViewModels
                 return;
             }
 
-            // Validate email format
             if (!IsValidEmail(email))
             {
                 MessageBox.Show("Please enter a valid email address.", "Validation Error",
@@ -166,7 +180,6 @@ namespace SplashGoJunpro.ViewModels
                 return;
             }
 
-            // Validate password strength
             if (password.Length < 6)
             {
                 MessageBox.Show("Password must be at least 6 characters long.", "Validation Error",
@@ -174,27 +187,78 @@ namespace SplashGoJunpro.ViewModels
                 return;
             }
 
-            // TODO: Replace with actual registration service
-            // For now, simulate successful registration
             try
             {
-                // Create new user
+                // Hash only after we've validated the input
+                hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
+            }
+            catch (ArgumentNullException ane)
+            {
+                MessageBox.Show("Password cannot be null.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                Debug.WriteLine($"Hashing error: {ane}");
+                return;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Unexpected error while hashing password: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                Debug.WriteLine($"Hashing error: {ex}");
+                return;
+            }
+            
+            try
+            {
+                if (_db == null)
+                {
+                    throw new InvalidOperationException("_db is not initialized!");
+                }
+
+                // Create User model
                 var newUser = new User
                 {
                     Email = email,
-                    Password = password // Note: In production, hash the password!
+                    Password = hashedPassword // TODO: hash in production (done)
                 };
 
-                MessageBox.Show($"Registration successful!\n\nWelcome to SplashGo!\nYou can now sign in with your email: {email}",
-                    "Success",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
+                // Save user to database
+                string sql = "INSERT INTO users (email, password) VALUES (@Email, @Password)";
+                var parameters = new Dictionary<string, object>
+                {
+                    { "@Email", newUser.Email },
+                    { "@Password", newUser.Password }
+                };
 
-                // TODO: Save user to database
-                Debug.WriteLine($"User registered: {email}");
+                int affected = await _db.ExecuteAsync(sql, parameters);
 
-                // Trigger navigation to login
-                RegistrationSuccess?.Invoke(this, EventArgs.Empty);
+                if (affected > 0)
+                {
+                    //  REMEMBER ME LOGIC
+                    if (RememberMe) 
+                    {
+                        Properties.Settings.Default.RememberMe = true;
+                        Properties.Settings.Default.SavedEmail = email;
+                        Properties.Settings.Default.SavedPassword = password; // optionally remove later (for token-based login)
+                    }
+                    else
+                    {
+                        Properties.Settings.Default.RememberMe = false;
+                        Properties.Settings.Default.SavedEmail = "";
+                        Properties.Settings.Default.SavedPassword = "";
+                    }
+
+                    Properties.Settings.Default.Save();
+
+                    MessageBox.Show($"Registration successful!\n\nWelcome to SplashGo!\nYou can now sign in using your account.",
+                        "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                    Debug.WriteLine($"User registered: {email}");
+
+                    RegistrationSuccess?.Invoke(this, EventArgs.Empty);
+                }
+                else
+                {
+                    MessageBox.Show("Registration failed: Could not save user to database.", "Error",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
             catch (Exception ex)
             {
@@ -207,15 +271,55 @@ namespace SplashGoJunpro.ViewModels
         /// <summary>
         /// Executes Google Sign In logic
         /// </summary>
-        private void ExecuteGoogleSignIn(object parameter)
+        private async void ExecuteGoogleSignIn(object parameter)
         {
-            MessageBox.Show("Google Sign-In feature will be implemented soon.\n\n" +
-                "This will allow you to sign up using your Google account.",
-                "Google Sign-In",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
+            try
+            {
+                var credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
+                    GoogleClientSecrets.FromFile("Resources/client_secret.json").Secrets,
+                    new[] { Oauth2Service.Scope.UserinfoEmail, Oauth2Service.Scope.UserinfoProfile },
+                    "user",
+                    CancellationToken.None
+                );
 
-            // TODO: Implement OAuth2 Google Sign-In
+                var service = new Oauth2Service(new BaseClientService.Initializer()
+                {
+                    HttpClientInitializer = credential
+                });
+
+                Userinfo userInfo = await service.Userinfo.Get().ExecuteAsync();
+
+                string email = userInfo.Email;
+                string googleId = userInfo.Id;
+                string name = userInfo.Name;
+
+                // Check DB
+                string sqlCheck = "SELECT * FROM users WHERE email = @Email AND google_id = @GoogleId";
+                var user = await _db.QueryAsync(sqlCheck, new Dictionary<string, object>
+                {
+                    { "@Email", email },
+                    { "@GoogleId", googleId },
+                });
+
+                // If user does not exist ? Register automatically
+                if (user.Count == 0)
+                {
+                    string sqlInsert = "INSERT INTO users (email, google_id, display_name) VALUES (@Email, @GoogleId, @Name)";
+                    await _db.ExecuteAsync(sqlInsert, new Dictionary<string, object>
+                    {
+                        { "@Email", email },
+                        { "@GoogleId", googleId },
+                        { "@Name", name }
+                    });
+                }
+
+                MessageBox.Show($"Welcome {name}! (Google Login successful)", "Success", MessageBoxButton.OK);
+                LoginSuccess?.Invoke(this, EventArgs.Empty);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Google login failed: {ex.Message}", "Error", MessageBoxButton.OK);
+            }
         }
 
         /// <summary>

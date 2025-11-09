@@ -1,9 +1,17 @@
+using BCrypt.Net;
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Oauth2.v2;
+using Google.Apis.Oauth2.v2.Data;
+using Google.Apis.Services;
+using SplashGoJunpro.Commands;
+using SplashGoJunpro.Data;
+using SplashGoJunpro.Models;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using System.Windows;
 using System.Windows.Input;
-using SplashGoJunpro.Commands;
-using SplashGoJunpro.Models;
 
 namespace SplashGoJunpro.ViewModels
 {
@@ -17,7 +25,7 @@ namespace SplashGoJunpro.ViewModels
         private bool _rememberMe;
         private bool _isEmailFocused;
         private bool _isPasswordFocused;
-
+        private readonly NeonDb _db;
         #region Properties
 
         /// <summary>
@@ -107,6 +115,8 @@ namespace SplashGoJunpro.ViewModels
         /// Event untuk navigasi ke RegisterWindow
         /// </summary>
         public event EventHandler NavigateToRegister;
+        public event EventHandler LoginSuccess;
+
 
         #endregion
 
@@ -115,9 +125,17 @@ namespace SplashGoJunpro.ViewModels
         public LoginViewModel()
         {
             Debug.WriteLine("LoginViewModel initialized");
-            
-            // Initialize commands
-            SignInCommand = new RelayCommand(ExecuteSignIn); // ? Removed CanExecute - always enabled
+            _db = new NeonDb();
+
+            // Restore stored credentials
+            if (Properties.Settings.Default.RememberMe)
+            {
+                Email = Properties.Settings.Default.SavedEmail;
+                Password = Properties.Settings.Default.SavedPassword; // hashed is fine to auto-fill
+                RememberMe = true;
+            }
+
+            SignInCommand = new RelayCommand(ExecuteSignIn); 
             ForgotPasswordCommand = new RelayCommand(ExecuteForgotPassword);
             GoogleSignInCommand = new RelayCommand(ExecuteGoogleSignIn);
             SignUpCommand = new RelayCommand(ExecuteSignUp);
@@ -133,53 +151,74 @@ namespace SplashGoJunpro.ViewModels
         /// <summary>
         /// Executes Sign In logic
         /// </summary>
-        private void ExecuteSignIn(object parameter)
+        private async void ExecuteSignIn(object parameter)
         {
-            Debug.WriteLine("ExecuteSignIn called");
-     
             string email = Email?.Trim();
             string password = Password;
 
-            // Validate empty fields
-            if (string.IsNullOrWhiteSpace(email))
+            if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
             {
-                MessageBox.Show("Please enter your email address.", "Validation Error",
-                MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Email and password are required.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(password))
-            {
-                MessageBox.Show("Please enter your password.", "Validation Error",
-                MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            // Validate email format
             if (!IsValidEmail(email))
             {
-                MessageBox.Show("Please enter a valid email address.", "Validation Error",
-                MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Please enter a valid email address.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            // TODO: Replace with actual authentication service
-            // For now, hardcoded validation
-            if (email == "admin@splashgo.com" && password == "admin123")
+            try
             {
-                MessageBox.Show("Login successful!", "Success",
-                MessageBoxButton.OK, MessageBoxImage.Information);
+                string sql = "SELECT password FROM users WHERE email = @Email LIMIT 1";
 
-                // TODO: Navigate to MainWindow
-                // Application.Current.MainWindow can be used here
-                // or use a navigation service
+                var result = await _db.QueryAsync(sql, new Dictionary<string, object>
+                {
+                    { "@Email", email }
+                });
+
+                if (result.Count == 0)
+                {
+                    MessageBox.Show("Invalid email or password.", "Login Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                // Get stored hashed password
+                var storedHash = result[0]["password"].ToString();
+
+                // Compare hash with input password
+                if (BCrypt.Net.BCrypt.Verify(password, storedHash))
+                {
+                    // Save login if RememberMe checked
+                    if (RememberMe)
+                    {
+                        Properties.Settings.Default.RememberMe = true;
+                        Properties.Settings.Default.SavedEmail = email;
+                        Properties.Settings.Default.SavedPassword = password; // or skip storing password entirely
+                    }
+                    else
+                    {
+                        Properties.Settings.Default.RememberMe = false;
+                        Properties.Settings.Default.SavedEmail = "";
+                        Properties.Settings.Default.SavedPassword = "";
+                    }
+
+                    Properties.Settings.Default.Save();
+
+                    MessageBox.Show("Login successful!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                    LoginSuccess?.Invoke(this, EventArgs.Empty);
+                }
+                else
+                {
+                    MessageBox.Show("Invalid email or password.", "Login Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                MessageBox.Show("Invalid email or password.", "Login Failed",
-                MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Login failed: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
 
         /// <summary>
         /// Executes Forgot Password logic
@@ -196,13 +235,55 @@ namespace SplashGoJunpro.ViewModels
         /// <summary>
         /// Executes Google Sign In logic
         /// </summary>
-        private void ExecuteGoogleSignIn(object parameter)
+        private async void ExecuteGoogleSignIn(object parameter)
         {
-            MessageBox.Show("Google Sign-In feature will be implemented soon.\n\n" + "This will allow you to sign in using your Google account.", "Google Sign-In",
-            MessageBoxButton.OK,
-            MessageBoxImage.Information);
+            try
+            {
+                var credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
+                    GoogleClientSecrets.FromFile("Resources/client_secret.json").Secrets,
+                    new[] { Oauth2Service.Scope.UserinfoEmail, Oauth2Service.Scope.UserinfoProfile },
+                    "user",
+                    CancellationToken.None
+                );
 
-            // TODO: Implement OAuth2 Google Sign-In
+                var service = new Oauth2Service(new BaseClientService.Initializer()
+                {
+                    HttpClientInitializer = credential
+                });
+
+                Userinfo userInfo = await service.Userinfo.Get().ExecuteAsync();
+
+                string email = userInfo.Email;
+                string googleId = userInfo.Id;
+                string name = userInfo.Name;
+
+                // Check DB
+                string sqlCheck = "SELECT * FROM users WHERE email = @Email AND google_id = @GoogleId";
+                var user = await _db.QueryAsync(sqlCheck, new Dictionary<string, object>
+                {
+                    { "@Email", email },
+                    { "@GoogleId", googleId },
+                });
+
+                // If user does not exist ? Register automatically
+                if (user.Count == 0)
+                {
+                    string sqlInsert = "INSERT INTO users (email, google_id, display_name) VALUES (@Email, @GoogleId, @Name)";
+                    await _db.ExecuteAsync(sqlInsert, new Dictionary<string, object>
+                    {
+                        { "@Email", email },
+                        { "@GoogleId", googleId },
+                        { "@Name", name }
+                    });
+                }
+
+                MessageBox.Show($"Welcome {name}! (Google Login successful)", "Success", MessageBoxButton.OK);
+                LoginSuccess?.Invoke(this, EventArgs.Empty);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Google login failed: {ex.Message}", "Error", MessageBoxButton.OK);
+            }
         }
 
         /// <summary>
