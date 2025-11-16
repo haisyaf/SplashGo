@@ -6,6 +6,7 @@ using Google.Apis.Services;
 using SplashGoJunpro.Commands;
 using SplashGoJunpro.Data;
 using SplashGoJunpro.Models;
+using SplashGoJunpro.Services;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -313,6 +314,23 @@ namespace SplashGoJunpro.ViewModels
                         { "@Name", name }
                     });
                 }
+
+                // --- TOKEN FOR GOOGLE LOGIN ---
+                string token = Guid.NewGuid().ToString();
+
+                await _db.ExecuteAsync(
+                    "UPDATE users SET login_token = @Token WHERE email = @Email",
+                    new Dictionary<string, object>
+                    {
+                        { "@Token", token },
+                        { "@Email", email }
+                    }
+                );
+
+                // Save login session
+                SessionManager.IsLoggedIn = true;
+                SessionManager.CurrentUserEmail = email;
+                SessionManager.LoginToken = token;
 
                 MessageBox.Show($"Welcome {name}! (Google Login successful)", "Success", MessageBoxButton.OK);
                 LoginSuccess?.Invoke(this, EventArgs.Empty);
