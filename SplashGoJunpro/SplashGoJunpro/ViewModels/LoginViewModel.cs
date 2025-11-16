@@ -6,6 +6,7 @@ using Google.Apis.Services;
 using SplashGoJunpro.Commands;
 using SplashGoJunpro.Data;
 using SplashGoJunpro.Models;
+using SplashGoJunpro.Services;
 using SplashGoJunpro.Views;
 using System;
 using System.Collections.Generic;
@@ -217,6 +218,10 @@ namespace SplashGoJunpro.ViewModels
                         Properties.Settings.Default.SavedPassword = "";
                     }
 
+                    // Save login session
+                    SessionManager.IsLoggedIn = true;
+                    SessionManager.CurrentUserEmail = email;
+                    SessionManager.LoginToken = token;
                     Properties.Settings.Default.Save();
 
                     MessageBox.Show("Login successful!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -304,6 +309,11 @@ namespace SplashGoJunpro.ViewModels
                         { "@Email", email }
                     }
                 );
+
+                // Save login session
+                SessionManager.IsLoggedIn = true;
+                SessionManager.CurrentUserEmail = email;
+                SessionManager.LoginToken = token;
 
                 MessageBox.Show($"Welcome {name}! (Google Login successful)", "Success", MessageBoxButton.OK);
                 LoginSuccess?.Invoke(this, EventArgs.Empty);

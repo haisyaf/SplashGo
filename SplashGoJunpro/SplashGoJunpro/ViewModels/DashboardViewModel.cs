@@ -1,10 +1,14 @@
-﻿using System;
+﻿using SplashGoJunpro.Data;
+using SplashGoJunpro.Models;
+using SplashGoJunpro.Services;
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Windows;
 using System.Windows.Input;
-using SplashGoJunpro.Models;
 
 namespace SplashGoJunpro.ViewModels
 {
@@ -18,6 +22,7 @@ namespace SplashGoJunpro.ViewModels
         private string _selectedSortOption;
         private string _priceFrom;
         private string _priceTo;
+        private bool _isPricePopupOpen;
 
         public DashboardViewModel()
         {
@@ -27,6 +32,7 @@ namespace SplashGoJunpro.ViewModels
             SelectedSortOption = "Lowest Price";
             PriceFrom = "";
             PriceTo = "";
+            IsPricePopupOpen = false;
 
             // Initialize commands
             SelectCategoryCommand = new RelayCommand(SelectCategory);
@@ -34,6 +40,15 @@ namespace SplashGoJunpro.ViewModels
             SearchCommand = new RelayCommand(Search);
             SortCommand = new RelayCommand(Sort);
             FilterPriceCommand = new RelayCommand(FilterPrice);
+            ApplyPriceFilterCommand = new RelayCommand(ApplyPriceFilter);
+
+            // Navigation commands
+            DashboardCommand = new RelayCommand(_ => { /* Already on dashboard */ });
+            HistoryCommand = new RelayCommand(_ => ExecuteProtectedNavigation("History"));
+            SavedCommand = new RelayCommand(_ => ExecuteProtectedNavigation("Saved"));
+            AddBusinessCommand = new RelayCommand(_ => ExecuteProtectedNavigation("Add Business"));
+            ProfileCommand = new RelayCommand(_ => ExecuteProtectedNavigation("Profile"));
+            LogoutCommand = new RelayCommand(_ => ExecuteLogout());
         }
 
         #region Properties
@@ -65,6 +80,7 @@ namespace SplashGoJunpro.ViewModels
             {
                 _selectedCategory = value;
                 OnPropertyChanged();
+                FilterByCategory();
             }
         }
 
@@ -75,6 +91,7 @@ namespace SplashGoJunpro.ViewModels
             {
                 _beachSearchText = value;
                 OnPropertyChanged();
+                FilterByCategory();
             }
         }
 
@@ -85,6 +102,7 @@ namespace SplashGoJunpro.ViewModels
             {
                 _activitySearchText = value;
                 OnPropertyChanged();
+                FilterByCategory();
             }
         }
 
@@ -119,6 +137,16 @@ namespace SplashGoJunpro.ViewModels
             }
         }
 
+        public bool IsPricePopupOpen
+        {
+            get => _isPricePopupOpen;
+            set
+            {
+                _isPricePopupOpen = value;
+                OnPropertyChanged();
+            }
+        }
+
         #endregion
 
         #region Commands
@@ -128,15 +156,94 @@ namespace SplashGoJunpro.ViewModels
         public ICommand SearchCommand { get; }
         public ICommand SortCommand { get; }
         public ICommand FilterPriceCommand { get; }
+        public ICommand ApplyPriceFilterCommand { get; }
+
+        // Navigation Commands
+        public ICommand DashboardCommand { get; }
+        public ICommand HistoryCommand { get; }
+        public ICommand SavedCommand { get; }
+        public ICommand AddBusinessCommand { get; }
+        public ICommand ProfileCommand { get; }
+        public ICommand LogoutCommand { get; }
 
         #endregion
 
         #region Events
 
         public event EventHandler NavigateToLogin;
+        public event EventHandler NavigateToProfile;
+        public event EventHandler NavigateToHistory;
+        public event EventHandler NavigateToSaved;
+        public event EventHandler NavigateToAddBusiness;
+
         #endregion
 
         #region Methods
+        private void ExecuteProtectedNavigation(string featureName)
+        {
+            // If NOT logged in → redirect to Login
+            if (!SessionManager.IsLoggedIn)
+            {
+                MessageBox.Show(
+                    "You need to log in to access this feature.",
+                    "Login Required",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
+
+                NavigateToLogin?.Invoke(this, EventArgs.Empty);
+                return;
+            }
+
+            // If logged in → show placeholder message
+            MessageBox.Show(
+                $"{featureName} feature is not available yet. Coming soon!",
+                "Coming Soon",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information
+            );
+        }
+
+
+        private async void ExecuteLogout()
+        {
+            // Check if user is logged in
+            if (!SessionManager.IsLoggedIn)
+            {
+                MessageBox.Show("You are not logged in.", "Logout Failed",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            // Remove login token from database
+            try
+            {
+                var sql = "UPDATE users SET login_token = NULL WHERE email = @Email";
+
+                await new NeonDb().ExecuteAsync(sql, new Dictionary<string, object>
+                {
+                    { "@Email", SessionManager.CurrentUserEmail }
+                });
+            }
+            catch
+            {
+                MessageBox.Show("Logout failed (DB error).", "Error",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            // Clear session
+            SessionManager.IsLoggedIn = false;
+            SessionManager.CurrentUserEmail = null;
+            SessionManager.LoginToken = null;
+
+            MessageBox.Show("You have been logged out.", "Logout",
+                MessageBoxButton.OK, MessageBoxImage.Information);
+
+            // Navigate to Login window
+            //NavigateToLogin?.Invoke(this, EventArgs.Empty);
+        }
+
 
         private void LoadDestinations()
         {
@@ -249,8 +356,6 @@ namespace SplashGoJunpro.ViewModels
                 {
                     SelectedCategory = category;
                 }
-
-                FilterByCategory();
             }
         }
 
@@ -315,6 +420,12 @@ namespace SplashGoJunpro.ViewModels
         private void FilterPrice(object parameter)
         {
             FilterByCategory(); // Re-apply all filters including price
+        }
+
+        private void ApplyPriceFilter(object parameter)
+        {
+            FilterByCategory(); // Re-apply all filters including price
+            IsPricePopupOpen = false; // Close the popup
         }
 
         private void Sort(object parameter)

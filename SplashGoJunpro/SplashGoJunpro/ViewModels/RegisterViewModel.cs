@@ -316,6 +316,7 @@ namespace SplashGoJunpro.ViewModels
 
                 MessageBox.Show($"Welcome {name}! (Google Login successful)", "Success", MessageBoxButton.OK);
                 LoginSuccess?.Invoke(this, EventArgs.Empty);
+                NavigateToDashboard?.Invoke(this, EventArgs.Empty);
             }
             catch (Exception ex)
             {
