@@ -21,8 +21,9 @@ namespace SplashGoJunpro.Views
           // Subscribe to navigation event
             if (ViewModel != null)
             {
-    ViewModel.NavigateToRegister += OnNavigateToRegister;
-  }
+                ViewModel.NavigateToRegister += OnNavigateToRegister;
+                ViewModel.NavigateToDashboard += OnNavigateToDashboard;
+            }
         }
 
         /// <summary>
@@ -31,7 +32,14 @@ namespace SplashGoJunpro.Views
         private void OnNavigateToRegister(object sender, System.EventArgs e)
         {
             var registerWindow = new RegisterWindow();
-      registerWindow.Show();
+            registerWindow.Show();
+            this.Close();
+        }
+
+        private void OnNavigateToDashboard(object sender, System.EventArgs e)
+        {
+            var dashboardWindow = new DashboardWindow();
+            dashboardWindow.Show();
             this.Close();
         }
 
@@ -89,8 +97,9 @@ if (e.ChangedButton == MouseButton.Left)
         {
             if (ViewModel != null)
             {
-    ViewModel.NavigateToRegister -= OnNavigateToRegister;
-        }
+                ViewModel.NavigateToRegister -= OnNavigateToRegister;
+                ViewModel.NavigateToDashboard -= OnNavigateToDashboard;
+            }
           base.OnClosed(e);
         }
     }

@@ -131,6 +131,11 @@ namespace SplashGoJunpro.ViewModels
 
         #endregion
 
+        #region Events
+
+        public event EventHandler NavigateToLogin;
+        #endregion
+
         #region Methods
 
         private void LoadDestinations()

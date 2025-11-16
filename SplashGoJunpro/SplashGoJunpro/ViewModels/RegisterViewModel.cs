@@ -123,6 +123,7 @@ namespace SplashGoJunpro.ViewModels
         /// </summary>
         public event EventHandler RegistrationSuccess;
         public event EventHandler LoginSuccess;
+        public event EventHandler NavigateToDashboard;
 
         #endregion
 

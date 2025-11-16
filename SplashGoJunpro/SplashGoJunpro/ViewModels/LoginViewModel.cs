@@ -6,6 +6,7 @@ using Google.Apis.Services;
 using SplashGoJunpro.Commands;
 using SplashGoJunpro.Data;
 using SplashGoJunpro.Models;
+using SplashGoJunpro.Views;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -116,6 +117,7 @@ namespace SplashGoJunpro.ViewModels
         /// </summary>
         public event EventHandler NavigateToRegister;
         public event EventHandler LoginSuccess;
+        public event EventHandler NavigateToDashboard;
 
 
         #endregion
@@ -189,6 +191,18 @@ namespace SplashGoJunpro.ViewModels
                 // Compare hash with input password
                 if (BCrypt.Net.BCrypt.Verify(password, storedHash))
                 {
+                    // Generate token
+                    string token = Guid.NewGuid().ToString();
+
+                    // Save token to database
+                    await _db.ExecuteAsync(
+                        "UPDATE users SET login_token = @Token WHERE email = @Email",
+                        new Dictionary<string, object>
+                        {
+                            { "@Token", token },
+                            { "@Email", email }
+                        }
+                    );
                     // Save login if RememberMe checked
                     if (RememberMe)
                     {
@@ -207,6 +221,8 @@ namespace SplashGoJunpro.ViewModels
 
                     MessageBox.Show("Login successful!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                     LoginSuccess?.Invoke(this, EventArgs.Empty);
+                    Debug.WriteLine("Navigating to DashboardWindow");
+                    NavigateToDashboard?.Invoke(this, EventArgs.Empty);
                 }
                 else
                 {
@@ -277,8 +293,22 @@ namespace SplashGoJunpro.ViewModels
                     });
                 }
 
+                // --- TOKEN FOR GOOGLE LOGIN ---
+                string token = Guid.NewGuid().ToString();
+
+                await _db.ExecuteAsync(
+                    "UPDATE users SET login_token = @Token WHERE email = @Email",
+                    new Dictionary<string, object>
+                    {
+                        { "@Token", token },
+                        { "@Email", email }
+                    }
+                );
+
                 MessageBox.Show($"Welcome {name}! (Google Login successful)", "Success", MessageBoxButton.OK);
                 LoginSuccess?.Invoke(this, EventArgs.Empty);
+                Debug.WriteLine("Navigating to DashboardWindow");
+                NavigateToDashboard?.Invoke(this, EventArgs.Empty);
             }
             catch (Exception ex)
             {
@@ -293,7 +323,7 @@ namespace SplashGoJunpro.ViewModels
         {
             Debug.WriteLine("Navigating to RegisterWindow");
             NavigateToRegister?.Invoke(this, EventArgs.Empty);
- }
+        }
 
         /// <summary>
         /// Closes the application
