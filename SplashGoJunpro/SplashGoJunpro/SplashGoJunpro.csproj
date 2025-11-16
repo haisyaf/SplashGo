@@ -271,9 +271,13 @@
     <Compile Include="Converters\PlaceholderVisibilityConverter.cs" />
     <Compile Include="Data\NeonDB.cs" />
     <Compile Include="Helpers\PasswordBoxHelper.cs" />
+    <Compile Include="ViewModels\DashboardViewModel.cs" />
     <Compile Include="ViewModels\LoginViewModel.cs" />
     <Compile Include="ViewModels\RegisterViewModel.cs" />
     <Compile Include="ViewModels\ViewModelBase.cs" />
+    <Compile Include="Views\DashboardWindow.xaml.cs">
+      <DependentUpon>DashboardWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\LoginWindow.xaml.cs">
       <DependentUpon>LoginWindow.xaml</DependentUpon>
     </Compile>
@@ -292,6 +296,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Views\DashboardWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\LoginWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -332,6 +340,15 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+    <Resource Include="Images\hero-bg.png" />
+    <Resource Include="Images\hotel1.jpg" />
+    <Resource Include="Images\account_circle.png" />
+    <Resource Include="Images\add_business.png" />
+    <Resource Include="Images\bookmark.png" />
+    <Resource Include="Images\history.png" />
+    <Resource Include="Images\home.png" />
+    <Resource Include="Images\logout.png" />
+    <Resource Include="Images\location_on.png" />
     <Content Include="Resources\client_secret.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
