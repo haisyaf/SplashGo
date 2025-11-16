@@ -64,7 +64,6 @@
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="BorderBrush" Value="Transparent"/>
             <Setter Property="Padding" Value="60,20"/>
-            <Setter Property="Margin" Value="0,0,0,0"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="FontSize" Value="32"/>
             <Setter Property="FontFamily" Value="Inter"/>
@@ -73,19 +72,16 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="border"
-                            Background="{TemplateBinding Background}" 
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            CornerRadius="10">
+                        Background="{TemplateBinding Background}" 
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        CornerRadius="10">
                             <ContentPresenter HorizontalAlignment="Center" 
-                                          VerticalAlignment="Center"/>
+                                      VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="border" Property="Background" Value="{StaticResource PrimaryBlue}"/>
-                                <Setter Property="Foreground" Value="White"/>
-                                <Setter TargetName="border" Property="BorderBrush" Value="Transparent"/>
-                                <Setter TargetName="border" Property="BorderThickness" Value="0"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -93,12 +89,32 @@
             </Setter>
         </Style>
 
-        <Style x:Key="ActiveCategoryButtonStyle" TargetType="Button" BasedOn="{StaticResource CategoryButtonStyle}">
+        <Style x:Key="ActiveCategoryButtonStyle" TargetType="Button"
+       BasedOn="{StaticResource CategoryButtonStyle}">
             <Setter Property="Background" Value="{StaticResource PrimaryBlue}"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="BorderBrush" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
+
+            <!-- Override template so hover does not change the background -->
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border"
+                        Background="{TemplateBinding Background}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        CornerRadius="10">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"/>
+                        </Border>
+
+                        <!-- No hover trigger here (so background stays static) -->
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
+
 
         <!-- Hotel Card Style -->
         <Style x:Key="HotelCardStyle" TargetType="Border">
@@ -327,13 +343,19 @@
                                         Margin="0,0,30,0"
                                         Width="450">
                                 <DockPanel>
-                                    <Path Data="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z" 
+                                    <Button Background="Transparent"
+                                            BorderThickness="0"
+                                            Cursor="Hand"
+                                            Command="{Binding SearchCommand}"
+                                            DockPanel.Dock="Right">
+                                        <Path Data="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z" 
                                               Fill="White" 
                                               Width="40" 
                                               Height="40" 
                                               Stretch="Uniform"
                                               DockPanel.Dock="Right"
                                               Margin="10,0,0,0"/>
+                                    </Button>
                                     <TextBox x:Name="BeachSearchBox"
                                                  Background="Transparent" 
                                                  BorderThickness="0"
@@ -343,7 +365,7 @@
                                                  FontFamily="Inter"
                                                  VerticalContentAlignment="Center"
                                                  CaretBrush="White"
-                                                 Text="{Binding BeachSearchText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
+                                                 Text="{Binding BeachSearchText, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" IsKeyboardFocusWithinChanged="True"/>
                                 </DockPanel>
                             </Border>
 
@@ -354,13 +376,18 @@
                                         Padding="25,10"
                                         Width="805">
                                 <DockPanel>
-                                    <Path Data="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z" 
-                                              Fill="White" 
-                                              Width="40" 
-                                              Height="40" 
-                                              Stretch="Uniform"
-                                              DockPanel.Dock="Right"
-                                              Margin="10,0,0,0"/>
+                                    <Button Background="Transparent"
+                                            BorderThickness="0"
+                                            Cursor="Hand"
+                                            Command="{Binding SearchCommand}">
+                                        <Path Data="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z" 
+                                                  Fill="White" 
+                                                  Width="40" 
+                                                  Height="40" 
+                                                  Stretch="Uniform"
+                                                  DockPanel.Dock="Right"
+                                                  Margin="10,0,0,0"/>
+                                    </Button>
                                     <TextBox x:Name="ActivitySearchBox"
                                                  Background="Transparent" 
                                                  BorderThickness="0"
@@ -370,7 +397,7 @@
                                                  FontFamily="Inter"
                                                  VerticalContentAlignment="Center"
                                                  CaretBrush="White"
-                                                 Text="{Binding ActivitySearchText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
+                                                 Text="{Binding ActivitySearchText, UpdateSourceTrigger=PropertyChanged}"/>
                                 </DockPanel>
                             </Border>
                         </StackPanel>
@@ -446,6 +473,7 @@
                             <!-- Category buttons -->
                             <Border BorderBrush="White" BorderThickness="1" CornerRadius="5" Padding="30,15" Background="#33FFFFFF">
                                 <StackPanel Orientation="Horizontal">
+                                    
                                     <Button Style="{StaticResource CategoryButtonStyle}" Content="Hotels" Command="{Binding SelectCategoryCommand}" CommandParameter="Hotels"/>
                                     <Button Style="{StaticResource CategoryButtonStyle}" Content="Beachclubs" Command="{Binding SelectCategoryCommand}" CommandParameter="Beachclubs" Margin="60,0,0,0"/>
                                     <Button Style="{StaticResource CategoryButtonStyle}" Content="Tours" Command="{Binding SelectCategoryCommand}" CommandParameter="Tours" Margin="60,0,0,0"/>
@@ -466,9 +494,10 @@
                                           Style="{StaticResource SearchComboBoxStyle}" 
                                           Foreground="White"
                                           SelectedItem="{Binding SelectedSortOption, Mode=TwoWay}">
-                                <ComboBoxItem Content="Lowest Price" />
-                                <ComboBoxItem Content="Highest Price"/>
-                                <ComboBoxItem Content="Rating"/>
+                                <ComboBox.Items>
+                                    <sys:String>Lowest Price</sys:String>
+                                    <sys:String>Highest Price</sys:String>
+                                </ComboBox.Items>
                             </ComboBox>
                         </StackPanel>
                     </StackPanel>

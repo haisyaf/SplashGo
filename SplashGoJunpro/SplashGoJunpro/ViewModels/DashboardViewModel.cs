@@ -9,6 +9,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
+using System.Threading.Tasks; 
 
 namespace SplashGoJunpro.ViewModels
 {
@@ -26,10 +27,15 @@ namespace SplashGoJunpro.ViewModels
 
         public DashboardViewModel()
         {
-            LoadDestinations();
-            FilteredDestinations = new ObservableCollection<Destination>(Destinations);
-            SelectedCategory = "Hotels";
+            _ = LoadDestinations();
+            //Destinations = new ObservableCollection<Destination>();
+            //FilteredDestinations = new ObservableCollection<Destination>(Destinations);
+
+            SelectedCategory = "All";
             SelectedSortOption = "Lowest Price";
+
+            BeachSearchText = string.Empty;
+            ActivitySearchText = string.Empty;
             PriceFrom = "";
             PriceTo = "";
             IsPricePopupOpen = false;
@@ -111,9 +117,13 @@ namespace SplashGoJunpro.ViewModels
             get => _selectedSortOption;
             set
             {
-                _selectedSortOption = value;
-                OnPropertyChanged();
-                Sort(null);
+                if (_selectedSortOption != value)
+                {
+                    _selectedSortOption = value;
+                    OnPropertyChanged();
+
+                    Sort(null);
+                }
             }
         }
 
@@ -204,7 +214,6 @@ namespace SplashGoJunpro.ViewModels
             );
         }
 
-
         private async void ExecuteLogout()
         {
             // Check if user is logged in
@@ -244,104 +253,50 @@ namespace SplashGoJunpro.ViewModels
             //NavigateToLogin?.Invoke(this, EventArgs.Empty);
         }
 
-
-        private void LoadDestinations()
+        private async Task LoadDestinations()
         {
-            // Load data dummy - nanti bisa diganti dengan data dari database
-            Destinations = new ObservableCollection<Destination>
+            try
             {
-                new Destination
+                var db = new NeonDb();
+
+                string sql = @"
+                    SELECT destinationid, name, location, description, price, category, image_link
+                    FROM destinations
+                    ORDER BY destinationid;
+                ";
+
+                var rows = await db.QueryAsync(sql, new Dictionary<string, object>());
+
+                var list = new ObservableCollection<Destination>();
+
+                foreach (var row in rows)
                 {
-                    DestinationId = 1,
-                    Name = "Beach Paradise Resort",
-                    Location = "Kuta Beach",
-                    Description = "Beautiful hotel with ocean view",
-                    Price = 1200000,
-                    Category = "Hotels",
-                    ImagePath = "/Images/hotel1.jpg"
-                },
-                new Destination
-                {
-                    DestinationId = 2,
-                    Name = "Ocean View Hotel",
-                    Location = "Seminyak",
-                    Description = "Luxury beachfront hotel",
-                    Price = 950000,
-                    Category = "Hotels",
-                    ImagePath = "/Images/hotel1.jpg"
-                },
-                new Destination
-                {
-                    DestinationId = 3,
-                    Name = "Sunset Beach Club",
-                    Location = "Canggu",
-                    Description = "Premium beach club experience",
-                    Price = 750000,
-                    Category = "Beachclubs",
-                    ImagePath = "/Images/hotel1.jpg"
-                },
-                new Destination
-                {
-                    DestinationId = 4,
-                    Name = "Island Explorer Tour",
-                    Location = "Nusa Penida",
-                    Description = "Full day island tour",
-                    Price = 850000,
-                    Category = "Tours",
-                    ImagePath = "/Images/hotel1.jpg"
-                },
-                new Destination
-                {
-                    DestinationId = 5,
-                    Name = "Spa Bali Wellness",
-                    Location = "Ubud",
-                    Description = "Traditional Balinese spa",
-                    Price = 650000,
-                    Category = "Spas",
-                    ImagePath = "/Images/hotel1.jpg"
-                },
-                new Destination
-                {
-                    DestinationId = 6,
-                    Name = "Seafood Restaurant Jimbaran",
-                    Location = "Jimbaran Bay",
-                    Description = "Fresh seafood by the beach",
-                    Price = 450000,
-                    Category = "Culinaries",
-                    ImagePath = "/Images/hotel1.jpg"
-                },
-                new Destination
-                {
-                    DestinationId = 7,
-                    Name = "Water Sports Center",
-                    Location = "Tanjung Benoa",
-                    Description = "Various water activities",
-                    Price = 550000,
-                    Category = "Recreational",
-                    ImagePath = "/Images/hotel1.jpg"
-                },
-                new Destination
-                {
-                    DestinationId = 8,
-                    Name = "Bali Artisan Market",
-                    Location = "Ubud",
-                    Description = "Traditional crafts and souvenirs",
-                    Price = 200000,
-                    Category = "Souvenirs",
-                    ImagePath = "/Images/hotel1.jpg"
-                },
-                new Destination
-                {
-                    DestinationId = 9,
-                    Name = "Grand Bali Hotel",
-                    Location = "Sanur",
-                    Description = "Comfortable stay near beach",
-                    Price = 780000,
-                    Category = "Hotels",
-                    ImagePath = "/Images/hotel1.jpg"
+                    list.Add(new Destination
+                    {
+                        DestinationId = Convert.ToInt32(row["destinationid"]),
+                        Name = row["name"].ToString(),
+                        Location = row["location"].ToString(),
+                        Description = row["description"].ToString(),
+                        Price = Convert.ToDecimal(row["price"]),
+                        Category = row["category"].ToString(),
+                        ImagePath = row["image_link"].ToString()
+                    });
                 }
-            };
+
+                Destinations = list;
+                FilteredDestinations = new ObservableCollection<Destination>(list);
+
+                // Apply initial filters & sorting
+                FilterByCategory();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to load destinations: {ex.Message}");
+            }
+            return; // Explicit return to satisfy all code paths for Task-returning method
         }
+
+        
 
         private void SelectCategory(object parameter)
         {
@@ -361,6 +316,9 @@ namespace SplashGoJunpro.ViewModels
 
         private void FilterByCategory()
         {
+            if (Destinations == null || Destinations.Count == 0)
+                return;
+
             var filtered = Destinations.AsEnumerable();
 
             // Filter by category
@@ -403,14 +361,35 @@ namespace SplashGoJunpro.ViewModels
 
         private void ToggleBookmark(object parameter)
         {
+            // If NOT logged in → show login message
+            if (!SessionManager.IsLoggedIn)
+            {
+                MessageBox.Show(
+                    "You need to log in to use bookmarks.",
+                    "Login Required",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
+
+                NavigateToLogin?.Invoke(this, EventArgs.Empty);
+                return;
+            }
+
+            // Logged in → feature not ready
+            MessageBox.Show(
+                "Bookmark feature is not available yet. Coming soon!",
+                "Coming Soon",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information
+            );
+
+            // OPTIONAL: Toggle UI bookmark (if you want the heart to change)
             if (parameter is Destination destination)
             {
                 destination.IsBookmarked = !destination.IsBookmarked;
-
-                // TODO: Save bookmark status to database
-                // Example: _bookmarkService.SaveBookmark(destination.DestinationId, destination.IsBookmarked);
             }
         }
+
 
         private void Search(object parameter)
         {
@@ -443,11 +422,11 @@ namespace SplashGoJunpro.ViewModels
                 case "Highest Price":
                     sorted = sorted.OrderByDescending(d => d.Price).ToList();
                     break;
-                case "Rating":
-                    // Assuming you'll add Rating property later
-                    // sorted = sorted.OrderByDescending(d => d.Rating).ToList();
-                    sorted = sorted.OrderBy(d => d.Name).ToList();
-                    break;
+                //case "Rating":
+                //    // Assuming you'll add Rating property later
+                //    // sorted = sorted.OrderByDescending(d => d.Rating).ToList();
+                //    sorted = sorted.OrderBy(d => d.Name).ToList();
+                //    break;
                 default:
                     sorted = sorted.OrderBy(d => d.Price).ToList();
                     break;
@@ -502,3 +481,101 @@ namespace SplashGoJunpro.ViewModels
 
     #endregion
 }
+
+//private void LoadDestinations()
+//{
+//    // Load data dummy - nanti bisa diganti dengan data dari database
+//    Destinations = new ObservableCollection<Destination>
+//    {
+//        new Destination
+//        {
+//            DestinationId = 1,
+//            Name = "Beach Paradise Resort",
+//            Location = "Kuta Beach",
+//            Description = "Beautiful hotel with ocean view",
+//            Price = 1200000,
+//            Category = "Hotels",
+//            ImagePath = "/Images/hotel1.jpg"
+//        },
+//        new Destination
+//        {
+//            DestinationId = 2,
+//            Name = "Ocean View Hotel",
+//            Location = "Seminyak",
+//            Description = "Luxury beachfront hotel",
+//            Price = 950000,
+//            Category = "Hotels",
+//            ImagePath = "/Images/hotel1.jpg"
+//        },
+//        new Destination
+//        {
+//            DestinationId = 3,
+//            Name = "Sunset Beach Club",
+//            Location = "Canggu",
+//            Description = "Premium beach club experience",
+//            Price = 750000,
+//            Category = "Beachclubs",
+//            ImagePath = "/Images/hotel1.jpg"
+//        },
+//        new Destination
+//        {
+//            DestinationId = 4,
+//            Name = "Island Explorer Tour",
+//            Location = "Nusa Penida",
+//            Description = "Full day island tour",
+//            Price = 850000,
+//            Category = "Tours",
+//            ImagePath = "/Images/hotel1.jpg"
+//        },
+//        new Destination
+//        {
+//            DestinationId = 5,
+//            Name = "Spa Bali Wellness",
+//            Location = "Ubud",
+//            Description = "Traditional Balinese spa",
+//            Price = 650000,
+//            Category = "Spas",
+//            ImagePath = "/Images/hotel1.jpg"
+//        },
+//        new Destination
+//        {
+//            DestinationId = 6,
+//            Name = "Seafood Restaurant Jimbaran",
+//            Location = "Jimbaran Bay",
+//            Description = "Fresh seafood by the beach",
+//            Price = 450000,
+//            Category = "Culinaries",
+//            ImagePath = "/Images/hotel1.jpg"
+//        },
+//        new Destination
+//        {
+//            DestinationId = 7,
+//            Name = "Water Sports Center",
+//            Location = "Tanjung Benoa",
+//            Description = "Various water activities",
+//            Price = 550000,
+//            Category = "Recreational",
+//            ImagePath = "/Images/hotel1.jpg"
+//        },
+//        new Destination
+//        {
+//            DestinationId = 8,
+//            Name = "Bali Artisan Market",
+//            Location = "Ubud",
+//            Description = "Traditional crafts and souvenirs",
+//            Price = 200000,
+//            Category = "Souvenirs",
+//            ImagePath = "/Images/hotel1.jpg"
+//        },
+//        new Destination
+//        {
+//            DestinationId = 9,
+//            Name = "Grand Bali Hotel",
+//            Location = "Sanur",
+//            Description = "Comfortable stay near beach",
+//            Price = 780000,
+//            Category = "Hotels",
+//            ImagePath = "/Images/hotel1.jpg"
+//        }
+//    };
+//}

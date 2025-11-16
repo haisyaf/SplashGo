@@ -260,5 +260,10 @@ namespace SplashGoJunpro.Views
                 }
             }
         }
+
+        private void True(object sender, DependencyPropertyChangedEventArgs e)
+        {
+
+        }
     }
 }
