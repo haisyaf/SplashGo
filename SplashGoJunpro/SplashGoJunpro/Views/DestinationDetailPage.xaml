@@ -1,0 +1,349 @@
+﻿<Page x:Class="SplashGoJunpro.Views.DestinationDetailPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:vm="clr-namespace:SplashGoJunpro.ViewModels"
+      mc:Ignorable="d"
+      d:DesignHeight="1080" d:DesignWidth="1820"
+      Title="DestinationDetailPage">
+
+    <Page.Resources>
+        <!-- Color Resources -->
+        <SolidColorBrush x:Key="PrimaryBlue" Color="#0066CC"/>
+        <SolidColorBrush x:Key="LightGray" Color="#F5F5F5"/>
+        <SolidColorBrush x:Key="TextGray" Color="#666666"/>
+        <SolidColorBrush x:Key="PriceRed" Color="#E74C3C"/>
+
+        <!-- Hotel Card Style (SAMA PERSIS seperti Dashboard) -->
+        <Style x:Key="HotelCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Margin" Value="10"/>
+            <Setter Property="Width" Value="536"/>
+            <Setter Property="Height" Value="516"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="Gray" Opacity="0.3" BlurRadius="10" ShadowDepth="2"/>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Effect">
+                        <Setter.Value>
+                            <DropShadowEffect Color="Gray" Opacity="0.5" BlurRadius="15" ShadowDepth="3"/>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Detail Offer Tag Style -->
+        <Style x:Key="OfferTagStyle" TargetType="Border">
+            <Setter Property="Background" Value="#E8E8E8"/>
+            <Setter Property="CornerRadius" Value="20"/>
+            <Setter Property="Padding" Value="15,8"/>
+            <Setter Property="Margin" Value="0,0,10,0"/>
+        </Style>
+
+        <!-- Back Button Style -->
+        <Style x:Key="BackButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#CCCCCC"/>
+            <Setter Property="Width" Value="50"/>
+            <Setter Property="Height" Value="50"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="25">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource LightGray}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="FindTicketButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#1A2332"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="40,15"/>
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="FontFamily" Value="Inter"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                        CornerRadius="10"
+                        Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource PrimaryBlue}"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#004080"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+    </Page.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled">
+        <StackPanel>
+            <!-- Back Button -->
+            <Button Style="{StaticResource BackButtonStyle}"
+                    Click="BackButton_Click"
+                    Margin="60,30,0,20"
+                    HorizontalAlignment="Left">
+                <Path Data="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"
+                      Fill="{StaticResource TextGray}"
+                      Width="24"
+                      Height="24"
+                      Stretch="Uniform"/>
+            </Button>
+
+            <!-- Main Detail Section -->
+            <Grid Margin="60,0,60,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="500"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Left: Image -->
+                <Border Grid.Column="0" 
+                        CornerRadius="15" 
+                        Margin="0,0,30,0"
+                        Height="600">
+                    <Border.Background>
+                        <ImageBrush ImageSource="{Binding CurrentDestination.ImagePath}" 
+                                   Stretch="UniformToFill"/>
+                    </Border.Background>
+                </Border>
+
+                <!-- Right: Details -->
+                <StackPanel Grid.Column="1">
+                    <!-- Title -->
+                    <TextBlock Text="{Binding CurrentDestination.Name}" 
+                               FontSize="40" 
+                               FontWeight="Bold"
+                               FontFamily="Inter"
+                               TextWrapping="Wrap"
+                               Margin="0,0,0,20"/>
+
+                    <!-- Description -->
+                    <TextBlock Text="{Binding CurrentDestination.Description}" 
+                               FontSize="18" 
+                               FontFamily="Inter"
+                               Foreground="{StaticResource TextGray}"
+                               TextWrapping="Wrap"
+                               LineHeight="28"
+                               Margin="0,0,0,30"/>
+
+                    <!-- Location -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+                        <Image Source="/Images/location_on.png" 
+                               Width="24" 
+                               Height="24" 
+                               Margin="0,0,10,0"/>
+                        <TextBlock Text="{Binding CurrentDestination.Location}" 
+                                   FontSize="20"
+                                   FontFamily="Inter"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Opening Hours -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+                        <Path Data="M12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22C6.47,22 2,17.5 2,12A10,10 0 0,1 12,2M12.5,7V12.25L17,14.92L16.25,16.15L11,13V7H12.5Z" 
+                              Fill="Black" 
+                              Width="24" 
+                              Height="24" 
+                              Stretch="Uniform"
+                              Margin="0,0,10,0"/>
+                        <TextBlock Text="Buka pukul" 
+                                   FontSize="20"
+                                   FontFamily="Inter"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Capacity -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,30">
+                        <Path Data="M16,13C15.71,13 15.38,13 15.03,13.05C16.19,13.89 17,15 17,16.5V19H23V16.5C23,14.17 18.33,13 16,13M8,13C5.67,13 1,14.17 1,16.5V19H15V16.5C15,14.17 10.33,13 8,13M8,11A3,3 0 0,0 11,8A3,3 0 0,0 8,5A3,3 0 0,0 5,8A3,3 0 0,0 8,11M16,11A3,3 0 0,0 19,8A3,3 0 0,0 16,5A3,3 0 0,0 13,8A3,3 0 0,0 16,11Z" 
+                              Fill="Black" 
+                              Width="24" 
+                              Height="24" 
+                              Stretch="Uniform"
+                              Margin="0,0,10,0"/>
+                        <TextBlock Text="Punya aku" 
+                                   FontSize="20"
+                                   FontFamily="Inter"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Price and Book Button -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Price -->
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                            <TextBlock Text="Price" 
+                                       FontSize="16"
+                                       FontFamily="Inter"
+                                       Foreground="{StaticResource TextGray}"
+                                       Margin="0,0,0,5"/>
+                            <TextBlock Text="{Binding CurrentDestination.FormattedPrice}" 
+                                       FontSize="28"
+                                       FontWeight="Bold"
+                                       FontFamily="Inter"
+                                       Foreground="{StaticResource PriceRed}"/>
+                        </StackPanel>
+
+                        <!-- Find Ticket Button -->
+                        <Button Grid.Column="1"
+                                Style="{StaticResource FindTicketButtonStyle}"
+                                Content="Find ticket"
+                                Command="{Binding FindTicketCommand}">
+                        </Button>
+
+                    </Grid>
+
+                    <!-- Details Offer Section -->
+                    <TextBlock Text="Details offer" 
+                               FontSize="24"
+                               FontWeight="SemiBold"
+                               FontFamily="Inter"
+                               Margin="0,40,0,20"/>
+
+                    <!-- Offer Tags -->
+                    <WrapPanel Margin="0,10,0,0">
+                        <Border Style="{StaticResource OfferTagStyle}" Margin="0,0,10,10">
+                            <TextBlock Text="Free WiFi" FontSize="16" FontFamily="Inter" Foreground="{StaticResource TextGray}"/>
+                        </Border>
+                        <Border Style="{StaticResource OfferTagStyle}" Margin="0,0,10,10">
+                            <TextBlock Text="Breakfast Included" FontSize="16" FontFamily="Inter" Foreground="{StaticResource TextGray}"/>
+                        </Border>
+                        <Border Style="{StaticResource OfferTagStyle}" Margin="0,0,10,10">
+                            <TextBlock Text="Swimming Pool" FontSize="16" FontFamily="Inter" Foreground="{StaticResource TextGray}"/>
+                        </Border>
+                        <Border Style="{StaticResource OfferTagStyle}" Margin="0,0,10,10">
+                            <TextBlock Text="Bathtub Available" FontSize="16" FontFamily="Inter" Foreground="{StaticResource TextGray}"/>
+                        </Border>
+                    </WrapPanel>
+                </StackPanel>
+            </Grid>
+
+            <!-- Divider -->
+            <Border Height="2" 
+                    Background="#E0E0E0" 
+                    Margin="60,40,60,40"/>
+
+            <!-- View More Section -->
+            <StackPanel Margin="60,0,60,60">
+                <TextBlock Text="View More" 
+                           FontSize="32"
+                           FontWeight="Bold"
+                           FontFamily="Inter"
+                           Margin="0,0,0,30"/>
+
+                <!-- Similar Destinations - STRUKTUR CARD SAMA SEPERTI DASHBOARD -->
+                <ItemsControl ItemsSource="{Binding SimilarDestinations}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="3"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <!-- GUNAKAN STYLE YANG SAMA PERSIS -->
+                            <Border Style="{StaticResource HotelCardStyle}"
+                                    MouseLeftButtonDown="SimilarCard_Click"
+                                    Tag="{Binding}">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="315"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Image Section - SAMA PERSIS -->
+                                    <Border Grid.Row="0" CornerRadius="10,10,0,0" Height="315" Width="536">
+                                        <Border.Background>
+                                            <ImageBrush ImageSource="{Binding ImagePath}" Stretch="UniformToFill"/>
+                                        </Border.Background>
+
+                                        <!-- Bookmark Button -->
+                                        <Button HorizontalAlignment="Right" 
+                                                VerticalAlignment="Top"
+                                                Margin="10"
+                                                Background="White"
+                                                BorderThickness="0"
+                                                Width="35"
+                                                Height="35"
+                                                Cursor="Hand"
+                                                Command="{Binding DataContext.ToggleBookmarkCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                CommandParameter="{Binding}">
+                                            <Path Data="M17,3H7A2,2 0 0,0 5,5V21L12,18L19,21V5C19,3.89 18.1,3 17,3Z" 
+                                                  Fill="{StaticResource TextGray}"
+                                                  Width="18" 
+                                                  Height="18" 
+                                                  Stretch="Uniform"/>
+                                        </Button>
+                                    </Border>
+
+                                    <!-- Info Section - SAMA PERSIS -->
+                                    <StackPanel Grid.Row="1" Margin="24,27,0,0">
+                                        <TextBlock Text="{Binding Name}" 
+                                                   FontSize="32" 
+                                                   FontWeight="Bold"
+                                                   FontFamily="Inter"
+                                                   Margin="0,0,0,10"/>
+                                        <DockPanel>
+                                            <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" Width="330">
+                                                <Image Source="/Images/location_on.png" Width="28" Height="28" Margin="0,0,5,0"/>
+                                                <TextBlock Text="{Binding Location}" 
+                                                           Foreground="{StaticResource TextGray}"
+                                                           FontSize="28"
+                                                           FontFamily="Inter"
+                                                           FontWeight="Light"/>
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding FormattedPrice}" 
+                                                       Foreground="{StaticResource PriceRed}"
+                                                       FontSize="28"
+                                                       FontWeight="SemiBold"
+                                                       FontFamily="Inter"
+                                                       DockPanel.Dock="Right"/>
+                                        </DockPanel>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

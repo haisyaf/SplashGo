@@ -3,10 +3,193 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:SplashGoJunpro"
         mc:Ignorable="d"
-        Title="MainWindow" Height="1080" Width="770">
+        Title="Sea Journey: Dive, Sail &amp; Explore" 
+        Height="1080" 
+        Width="1920"
+        WindowStartupLocation="CenterScreen"
+        WindowState="Maximized">
+
+    <Window.Resources>
+        <!-- Color Resources -->
+        <SolidColorBrush x:Key="PrimaryBlue" Color="#0066CC"/>
+        <SolidColorBrush x:Key="DarkBlue" Color="#1A2332"/>
+        <SolidColorBrush x:Key="LightGray" Color="#F5F5F5"/>
+
+        <!-- Sidebar Button Style -->
+        <Style x:Key="SidebarButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Height" Value="50"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Padding" Value="15,0,0,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderThickness="0">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" 
+                                            VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#2A3F5F"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
     <Grid>
-        
+        <!-- Main Content Frame with left margin for sidebar -->
+        <Frame x:Name="MainFrame"
+               NavigationUIVisibility="Hidden"
+               Margin="100,0,0,0"/>
+
+        <!-- Sidebar (overlays on top) -->
+        <Border Background="{StaticResource DarkBlue}"
+                x:Name="Sidebar"
+                Width="100"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Stretch"
+                Panel.ZIndex="10">
+
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Style.Triggers>
+                        <Trigger Property="Width" Value="400">
+                            <Setter Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect Color="Black" Opacity="0.5" BlurRadius="20" ShadowDepth="5"/>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+
+            <Border.Triggers>
+                <EventTrigger RoutedEvent="MouseEnter">
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="Sidebar"
+                                           Storyboard.TargetProperty="Width"
+                                           To="400"
+                                           Duration="0:0:0.3">
+                                <DoubleAnimation.EasingFunction>
+                                    <QuadraticEase EasingMode="EaseOut"/>
+                                </DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+                <EventTrigger RoutedEvent="MouseLeave">
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="Sidebar"
+                                           Storyboard.TargetProperty="Width"
+                                           To="100"
+                                           Duration="0:0:0.3">
+                                <DoubleAnimation.EasingFunction>
+                                    <QuadraticEase EasingMode="EaseIn"/>
+                                </DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+            </Border.Triggers>
+
+            <StackPanel>
+                <!-- Dashboard -->
+                <Button Style="{StaticResource SidebarButtonStyle}" 
+                        Click="Dashboard_Click"
+                        Margin="0,40,0,40">
+                    <StackPanel Orientation="Horizontal" Margin="28,0,20,0">
+                        <Image Source="/Images/home.png" Width="48" Height="48" Margin="0,0,15,0"/>
+                        <TextBlock Text="Dashboard" 
+                                   VerticalAlignment="Center" 
+                                   FontSize="24"
+                                   FontFamily="Inter"
+                                   FontWeight="Medium"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- History -->
+                <Button Style="{StaticResource SidebarButtonStyle}" 
+                        Click="History_Click"
+                        Margin="0,0,0,40">
+                    <StackPanel Orientation="Horizontal" Margin="28,0,20,0">
+                        <Image Source="/Images/history.png" Width="48" Height="48" Margin="0,0,15,0"/>
+                        <TextBlock Text="History" 
+                                   VerticalAlignment="Center" 
+                                   FontSize="24"
+                                   FontFamily="Inter"
+                                   FontWeight="Medium"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- Saved -->
+                <Button Style="{StaticResource SidebarButtonStyle}" 
+                        Click="Saved_Click"
+                        Margin="0,0,0,40">
+                    <StackPanel Orientation="Horizontal" Margin="28,0,20,0">
+                        <Image Source="/Images/bookmark.png" Width="48" Height="48" Margin="0,0,15,0"/>
+                        <TextBlock Text="Saved" 
+                                   VerticalAlignment="Center" 
+                                   FontSize="24"
+                                   FontFamily="Inter"
+                                   FontWeight="Medium"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- Add Business -->
+                <Button Style="{StaticResource SidebarButtonStyle}" 
+                        Click="AddBusiness_Click">
+                    <StackPanel Orientation="Horizontal" Margin="28,0,20,0">
+                        <Image Source="/Images/add_business.png" Width="48" Height="48" Margin="0,0,15,0"/>
+                        <TextBlock Text="Add Business" 
+                                   VerticalAlignment="Center" 
+                                   FontSize="24"
+                                   FontFamily="Inter"
+                                   FontWeight="Medium"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- Spacer -->
+                <Border Height="512"/>
+
+                <!-- Profile -->
+                <Button Style="{StaticResource SidebarButtonStyle}" 
+                        Click="Profile_Click"
+                        Margin="0,0,0,40">
+                    <StackPanel Orientation="Horizontal" Margin="28,0,20,0">
+                        <Image Source="/Images/account_circle.png" Width="48" Height="48" Margin="0,0,15,0"/>
+                        <TextBlock Text="Profile" 
+                                   VerticalAlignment="Center" 
+                                   FontSize="24"
+                                   FontFamily="Inter"
+                                   FontWeight="Medium"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- Logout -->
+                <Button Style="{StaticResource SidebarButtonStyle}" 
+                        Click="Logout_Click"
+                        Margin="0,0,0,40">
+                    <StackPanel Orientation="Horizontal" Margin="28,0,20,0">
+                        <Image Source="/Images/logout.png" Width="48" Height="48" Margin="0,0,15,0"/>
+                        <TextBlock Text="Logout" 
+                                   VerticalAlignment="Center" 
+                                   FontSize="24"
+                                   FontFamily="Inter"
+                                   FontWeight="Medium"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Border>
     </Grid>
 </Window>

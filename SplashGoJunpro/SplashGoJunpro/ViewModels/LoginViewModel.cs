@@ -28,6 +28,7 @@ namespace SplashGoJunpro.ViewModels
         private bool _isEmailFocused;
         private bool _isPasswordFocused;
         private readonly NeonDb _db;
+
         #region Properties
 
         /// <summary>
@@ -93,7 +94,7 @@ namespace SplashGoJunpro.ViewModels
             set
             {
                 if (SetProperty(ref _isPasswordFocused, value))
-                {          
+                {
                     Debug.WriteLine($"Password focus: {value}");
                 }
             }
@@ -118,8 +119,7 @@ namespace SplashGoJunpro.ViewModels
         /// </summary>
         public event EventHandler NavigateToRegister;
         public event EventHandler LoginSuccess;
-        public event EventHandler NavigateToDashboard;
-
+        public event EventHandler NavigateToMain; // Changed from NavigateToDashboard
 
         #endregion
 
@@ -134,16 +134,16 @@ namespace SplashGoJunpro.ViewModels
             if (Properties.Settings.Default.RememberMe)
             {
                 Email = Properties.Settings.Default.SavedEmail;
-                Password = Properties.Settings.Default.SavedPassword; // hashed is fine to auto-fill
+                Password = Properties.Settings.Default.SavedPassword;
                 RememberMe = true;
             }
 
-            SignInCommand = new RelayCommand(ExecuteSignIn); 
+            SignInCommand = new RelayCommand(ExecuteSignIn);
             ForgotPasswordCommand = new RelayCommand(ExecuteForgotPassword);
             GoogleSignInCommand = new RelayCommand(ExecuteGoogleSignIn);
             SignUpCommand = new RelayCommand(ExecuteSignUp);
             CloseCommand = new RelayCommand(ExecuteClose);
-  
+
             Debug.WriteLine("All commands initialized");
         }
 
@@ -204,12 +204,13 @@ namespace SplashGoJunpro.ViewModels
                             { "@Email", email }
                         }
                     );
+
                     // Save login if RememberMe checked
                     if (RememberMe)
                     {
                         Properties.Settings.Default.RememberMe = true;
                         Properties.Settings.Default.SavedEmail = email;
-                        Properties.Settings.Default.SavedPassword = password; // or skip storing password entirely
+                        Properties.Settings.Default.SavedPassword = password;
                     }
                     else
                     {
@@ -226,8 +227,8 @@ namespace SplashGoJunpro.ViewModels
 
                     MessageBox.Show("Login successful!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                     LoginSuccess?.Invoke(this, EventArgs.Empty);
-                    Debug.WriteLine("Navigating to DashboardWindow");
-                    NavigateToDashboard?.Invoke(this, EventArgs.Empty);
+                    Debug.WriteLine("Navigating to MainWindow");
+                    NavigateToMain?.Invoke(this, EventArgs.Empty); // Changed
                 }
                 else
                 {
@@ -240,7 +241,6 @@ namespace SplashGoJunpro.ViewModels
             }
         }
 
-
         /// <summary>
         /// Executes Forgot Password logic
         /// </summary>
@@ -249,8 +249,6 @@ namespace SplashGoJunpro.ViewModels
             MessageBox.Show("Forgot password feature will be implemented soon.\n\n" + "You will receive a password reset link to your email.", "Forgot Password",
             MessageBoxButton.OK,
             MessageBoxImage.Information);
-
-            // TODO: Implement forgot password functionality
         }
 
         /// <summary>
@@ -260,10 +258,18 @@ namespace SplashGoJunpro.ViewModels
         {
             try
             {
+                // Before AuthorizeAsync, delete the token file for "user"
+                string tokenPath = System.IO.Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "Google.Apis.Auth", "Google.Apis.Auth.OAuth2.Responses.TokenResponse-user");
+                if (System.IO.File.Exists(tokenPath))
+                    System.IO.File.Delete(tokenPath);
+
+                // Now call AuthorizeAsync as usual
                 var credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
                     GoogleClientSecrets.FromFile("Resources/client_secret.json").Secrets,
                     new[] { Oauth2Service.Scope.UserinfoEmail, Oauth2Service.Scope.UserinfoProfile },
-                    "user",
+                    "user", // or use a unique string
                     CancellationToken.None
                 );
 
@@ -286,7 +292,7 @@ namespace SplashGoJunpro.ViewModels
                     { "@GoogleId", googleId },
                 });
 
-                // If user does not exist ? Register automatically
+                // If user does not exist? Register automatically
                 if (user.Count == 0)
                 {
                     string sqlInsert = "INSERT INTO users (email, google_id, display_name) VALUES (@Email, @GoogleId, @Name)";
@@ -298,7 +304,7 @@ namespace SplashGoJunpro.ViewModels
                     });
                 }
 
-                // --- TOKEN FOR GOOGLE LOGIN ---
+                // Generate token for Google login
                 string token = Guid.NewGuid().ToString();
 
                 await _db.ExecuteAsync(
@@ -317,8 +323,8 @@ namespace SplashGoJunpro.ViewModels
 
                 MessageBox.Show($"Welcome {name}! (Google Login successful)", "Success", MessageBoxButton.OK);
                 LoginSuccess?.Invoke(this, EventArgs.Empty);
-                Debug.WriteLine("Navigating to DashboardWindow");
-                NavigateToDashboard?.Invoke(this, EventArgs.Empty);
+                Debug.WriteLine("Navigating to MainWindow");
+                NavigateToMain?.Invoke(this, EventArgs.Empty); // Changed
             }
             catch (Exception ex)
             {
@@ -353,7 +359,7 @@ namespace SplashGoJunpro.ViewModels
         private bool IsValidEmail(string email)
         {
             if (string.IsNullOrWhiteSpace(email))
-            return false;
+                return false;
 
             try
             {

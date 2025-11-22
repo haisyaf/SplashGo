@@ -17,12 +17,12 @@ namespace SplashGoJunpro.Views
             // If there are multiple partial classes for LoginWindow, ensure only one contains InitializeComponent
             this.InitializeComponent();
             DataContext = new LoginViewModel();
-        
-          // Subscribe to navigation event
+
+            // Subscribe to navigation event
             if (ViewModel != null)
             {
                 ViewModel.NavigateToRegister += OnNavigateToRegister;
-                ViewModel.NavigateToDashboard += OnNavigateToDashboard;
+                ViewModel.NavigateToMain += OnNavigateToMain; // Changed from NavigateToDashboard
             }
         }
 
@@ -36,10 +36,13 @@ namespace SplashGoJunpro.Views
             this.Close();
         }
 
-        private void OnNavigateToDashboard(object sender, System.EventArgs e)
+        /// <summary>
+        /// Event handler untuk navigasi ke MainWindow
+        /// </summary>
+        private void OnNavigateToMain(object sender, System.EventArgs e)
         {
-            var dashboardWindow = new DashboardWindow();
-            dashboardWindow.Show();
+            var mainWindow = new MainWindow();
+            mainWindow.Show();
             this.Close();
         }
 
@@ -48,29 +51,29 @@ namespace SplashGoJunpro.Views
         /// </summary>
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
         {
-if (e.ChangedButton == MouseButton.Left)
-          {
-          this.DragMove();
-          }
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                this.DragMove();
+            }
         }
 
         /// <summary>
         /// Event handler saat EmailTextBox mendapat focus
         /// </summary>
-      private void EmailTextBox_GotFocus(object sender, RoutedEventArgs e)
+        private void EmailTextBox_GotFocus(object sender, RoutedEventArgs e)
         {
             if (ViewModel != null)
-         ViewModel.IsEmailFocused = true;
-      }
+                ViewModel.IsEmailFocused = true;
+        }
 
         /// <summary>
-    /// Event handler saat EmailTextBox kehilangan focus
+        /// Event handler saat EmailTextBox kehilangan focus
         /// </summary>
-     private void EmailTextBox_LostFocus(object sender, RoutedEventArgs e)
+        private void EmailTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
-      if (ViewModel != null)
-        ViewModel.IsEmailFocused = false;
-    }
+            if (ViewModel != null)
+                ViewModel.IsEmailFocused = false;
+        }
 
         /// <summary>
         /// Event handler saat PasswordBox mendapat focus
@@ -78,7 +81,7 @@ if (e.ChangedButton == MouseButton.Left)
         private void PasswordBox_GotFocus(object sender, RoutedEventArgs e)
         {
             if (ViewModel != null)
-       ViewModel.IsPasswordFocused = true;
+                ViewModel.IsPasswordFocused = true;
         }
 
         /// <summary>
@@ -86,21 +89,21 @@ if (e.ChangedButton == MouseButton.Left)
         /// </summary>
         private void PasswordBox_LostFocus(object sender, RoutedEventArgs e)
         {
-       if (ViewModel != null)
-      ViewModel.IsPasswordFocused = false;
-   }
+            if (ViewModel != null)
+                ViewModel.IsPasswordFocused = false;
+        }
 
         /// <summary>
         /// Clean up event subscriptions
-    /// </summary>
-   protected override void OnClosed(System.EventArgs e)
+        /// </summary>
+        protected override void OnClosed(System.EventArgs e)
         {
             if (ViewModel != null)
             {
                 ViewModel.NavigateToRegister -= OnNavigateToRegister;
-                ViewModel.NavigateToDashboard -= OnNavigateToDashboard;
+                ViewModel.NavigateToMain -= OnNavigateToMain; // Changed from NavigateToDashboard
             }
-          base.OnClosed(e);
+            base.OnClosed(e);
         }
     }
 }

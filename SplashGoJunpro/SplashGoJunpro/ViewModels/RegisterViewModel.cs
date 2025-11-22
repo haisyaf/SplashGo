@@ -1,3 +1,6 @@
+// ============================================
+// FILE 1: RegisterViewModel.cs
+// ============================================
 using BCrypt.Net;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Oauth2.v2;
@@ -7,6 +10,7 @@ using SplashGoJunpro.Commands;
 using SplashGoJunpro.Data;
 using SplashGoJunpro.Models;
 using SplashGoJunpro.Services;
+using SplashGoJunpro.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -27,8 +31,6 @@ namespace SplashGoJunpro.ViewModels
         private bool _rememberMe;
         private bool _isEmailFocused;
         private bool _isPasswordFocused;
-
-
 
         #region Properties
 
@@ -123,8 +125,11 @@ namespace SplashGoJunpro.ViewModels
         /// Event untuk menutup RegisterWindow setelah registrasi berhasil
         /// </summary>
         public event EventHandler RegistrationSuccess;
-        public event EventHandler LoginSuccess;
-        public event EventHandler NavigateToDashboard;
+
+        /// <summary>
+        /// Event untuk navigasi ke MainWindow setelah Google login berhasil
+        /// </summary>
+        public event EventHandler NavigateToMain;
 
         #endregion
 
@@ -134,8 +139,10 @@ namespace SplashGoJunpro.ViewModels
         {
             Debug.WriteLine("RegisterViewModel initialized");
 
+            // Initialize database connection
+            _db = new NeonDb();
+
             // Initialize commands
-            _db = new NeonDb(); // initialize here BEFORE calling any method
             SignUpCommand = new RelayCommand(ExecuteSignUp);
             GoogleSignInCommand = new RelayCommand(ExecuteGoogleSignIn);
             SignInCommand = new RelayCommand(ExecuteSignIn);
@@ -158,7 +165,6 @@ namespace SplashGoJunpro.ViewModels
             string email = Email?.Trim();
             string password = Password;
             string hashedPassword;
-
 
             // Validation
             if (string.IsNullOrWhiteSpace(email))
@@ -191,7 +197,7 @@ namespace SplashGoJunpro.ViewModels
 
             try
             {
-                // Hash only after we've validated the input
+                // Hash password
                 hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
             }
             catch (ArgumentNullException ane)
@@ -206,19 +212,19 @@ namespace SplashGoJunpro.ViewModels
                 Debug.WriteLine($"Hashing error: {ex}");
                 return;
             }
-            
+
             try
             {
                 if (_db == null)
                 {
-                    throw new InvalidOperationException("_db is not initialized!");
+                    throw new InvalidOperationException("Database connection is not initialized!");
                 }
 
                 // Create User model
                 var newUser = new User
                 {
                     Email = email,
-                    Password = hashedPassword // TODO: hash in production (done)
+                    Password = hashedPassword
                 };
 
                 // Save user to database
@@ -233,12 +239,12 @@ namespace SplashGoJunpro.ViewModels
 
                 if (affected > 0)
                 {
-                    //  REMEMBER ME LOGIC
-                    if (RememberMe) 
+                    // Remember Me logic
+                    if (RememberMe)
                     {
                         Properties.Settings.Default.RememberMe = true;
                         Properties.Settings.Default.SavedEmail = email;
-                        Properties.Settings.Default.SavedPassword = password; // optionally remove later (for token-based login)
+                        Properties.Settings.Default.SavedPassword = password;
                     }
                     else
                     {
@@ -277,10 +283,18 @@ namespace SplashGoJunpro.ViewModels
         {
             try
             {
+                // Before AuthorizeAsync, delete the token file for "user"
+                string tokenPath = System.IO.Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "Google.Apis.Auth", "Google.Apis.Auth.OAuth2.Responses.TokenResponse-user");
+                if (System.IO.File.Exists(tokenPath))
+                    System.IO.File.Delete(tokenPath);
+
+                // Now call AuthorizeAsync as usual
                 var credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
                     GoogleClientSecrets.FromFile("Resources/client_secret.json").Secrets,
                     new[] { Oauth2Service.Scope.UserinfoEmail, Oauth2Service.Scope.UserinfoProfile },
-                    "user",
+                    "user", // or use a unique string
                     CancellationToken.None
                 );
 
@@ -295,7 +309,7 @@ namespace SplashGoJunpro.ViewModels
                 string googleId = userInfo.Id;
                 string name = userInfo.Name;
 
-                // Check DB
+                // Check if user exists in database
                 string sqlCheck = "SELECT * FROM users WHERE email = @Email AND google_id = @GoogleId";
                 var user = await _db.QueryAsync(sqlCheck, new Dictionary<string, object>
                 {
@@ -303,7 +317,7 @@ namespace SplashGoJunpro.ViewModels
                     { "@GoogleId", googleId },
                 });
 
-                // If user does not exist ? Register automatically
+                // If user does not exist, register automatically
                 if (user.Count == 0)
                 {
                     string sqlInsert = "INSERT INTO users (email, google_id, display_name) VALUES (@Email, @GoogleId, @Name)";
@@ -315,7 +329,7 @@ namespace SplashGoJunpro.ViewModels
                     });
                 }
 
-                // --- TOKEN FOR GOOGLE LOGIN ---
+                // Generate token for Google login
                 string token = Guid.NewGuid().ToString();
 
                 await _db.ExecuteAsync(
@@ -332,13 +346,14 @@ namespace SplashGoJunpro.ViewModels
                 SessionManager.CurrentUserEmail = email;
                 SessionManager.LoginToken = token;
 
-                MessageBox.Show($"Welcome {name}! (Google Login successful)", "Success", MessageBoxButton.OK);
-                LoginSuccess?.Invoke(this, EventArgs.Empty);
-                NavigateToDashboard?.Invoke(this, EventArgs.Empty);
+                MessageBox.Show($"Welcome {name}! (Google Login successful)", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                Debug.WriteLine("Navigating to MainWindow");
+                NavigateToMain?.Invoke(this, EventArgs.Empty);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Google login failed: {ex.Message}", "Error", MessageBoxButton.OK);
+                MessageBox.Show($"Google login failed: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

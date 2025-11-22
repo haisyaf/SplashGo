@@ -22,17 +22,17 @@ namespace SplashGoJunpro.Views
             {
                 ViewModel.NavigateToLogin += OnNavigateToLogin;
                 ViewModel.RegistrationSuccess += OnRegistrationSuccess;
-                ViewModel.NavigateToDashboard += OnNavigateToDashboard;
+                ViewModel.NavigateToMain += OnNavigateToMain;
             }
         }
 
         /// <summary>
-        /// Event handler untuk navigasi ke DashboardWindow
+        /// Event handler untuk navigasi ke MainWindow
         /// </summary>
-        private void OnNavigateToDashboard(object sender, System.EventArgs e)
+        private void OnNavigateToMain(object sender, System.EventArgs e)
         {
-            var dashboardWindow = new DashboardWindow();
-            dashboardWindow.Show();
+            var mainWindow = new MainWindow();
+            mainWindow.Show();
             this.Close();
         }
 
@@ -113,7 +113,7 @@ namespace SplashGoJunpro.Views
             {
                 ViewModel.NavigateToLogin -= OnNavigateToLogin;
                 ViewModel.RegistrationSuccess -= OnRegistrationSuccess;
-                ViewModel.NavigateToDashboard -= OnNavigateToDashboard;
+                ViewModel.NavigateToMain -= OnNavigateToMain;
             }
             base.OnClosed(e);
         }
