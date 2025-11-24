@@ -16,6 +16,7 @@ namespace SplashGoJunpro.Views
             InitializeComponent();
             var vm = new DestinationDetailViewModel(null);
             DataContext = vm;
+            vm.NavigateToPayment += OnNavigateToPayment;
             _ = vm.LoadDestinationDetails(destinationId);
         }
 
@@ -24,10 +25,22 @@ namespace SplashGoJunpro.Views
             InitializeComponent();
             var vm = new DestinationDetailViewModel(destination);
             DataContext = vm;
+
+            vm.NavigateToPayment += OnNavigateToPayment;
+
             if (destination != null)
             {
                 // Optionally, load details if you want to refresh from DB
                 _ = vm.LoadDestinationDetails(destination.DestinationId);
+            }
+        }
+
+        private void OnNavigateToPayment(object sender, Destination destination)
+        {
+            if (destination != null)
+            {
+                var paymentPage = new PaymentPage(destination);
+                NavigationService?.Navigate(paymentPage);
             }
         }
 

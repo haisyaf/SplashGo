@@ -17,6 +17,7 @@ namespace SplashGoJunpro.ViewModels
     {
         private Destination _currentDestination;
         private ObservableCollection<Destination> _similarDestinations;
+        public event EventHandler<Destination> NavigateToPayment;
 
         public DestinationDetailViewModel(Destination destination)
         {
@@ -158,13 +159,8 @@ namespace SplashGoJunpro.ViewModels
                 return;
             }
 
-            // Feature not ready yet
-            MessageBox.Show(
-                "Booking feature is not available yet. Coming soon!",
-                "Coming Soon",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information
-            );
+            // to PaymentPage
+            NavigateToPayment?.Invoke(this, CurrentDestination);
         }
 
         private void ToggleBookmark(object parameter)
