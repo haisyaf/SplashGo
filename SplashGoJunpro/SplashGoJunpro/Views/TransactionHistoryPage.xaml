@@ -1,0 +1,236 @@
+﻿<Page x:Class="SplashGoJunpro.Views.TransactionHistoryPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      mc:Ignorable="d"
+      d:DesignHeight="1080" d:DesignWidth="1820"
+      Title="Transaction History">
+
+    <Page.Resources>
+        <!-- Color Resources -->
+        <SolidColorBrush x:Key="PrimaryBlue" Color="#0066CC"/>
+        <SolidColorBrush x:Key="LightGray" Color="#F5F5F5"/>
+        <SolidColorBrush x:Key="TextGray" Color="#999999"/>
+        <SolidColorBrush x:Key="TextDarkGray" Color="#666666"/>
+        <SolidColorBrush x:Key="PriceRed" Color="#E74C3C"/>
+        <SolidColorBrush x:Key="DarkBlue" Color="#1A2332"/>
+        <SolidColorBrush x:Key="StatusPaid" Color="#4CAF50"/>
+
+        <!-- Converter for Boolean to Visibility -->
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+
+        <!-- Transaction Card Style -->
+        <Style x:Key="TransactionCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#DDDDDD"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="Margin" Value="0,0,20,20"/>
+            <Setter Property="Width" Value="300"/>
+        </Style>
+
+        <!-- Status Badge Style -->
+        <Style x:Key="StatusBadgeStyle" TargetType="Border">
+            <Setter Property="Background" Value="#4CAF50"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="12,4"/>
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+        </Style>
+    </Page.Resources>
+
+    <Grid Background="White">
+        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Margin="60,40,60,60">
+
+                <!-- Title -->
+                <TextBlock Text="Transaction History"
+                           FontSize="36"
+                           FontWeight="Bold"
+                           FontFamily="Inter"
+                           Margin="0,0,0,40"/>
+
+                <!-- Loading Indicator -->
+                <StackPanel x:Name="LoadingPanel"
+                            Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Margin="0,100,0,0">
+                    <TextBlock Text="Loading transactions..."
+                               FontSize="20"
+                               FontFamily="Inter"
+                               Foreground="{StaticResource TextGray}"
+                               HorizontalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Empty State -->
+                <StackPanel x:Name="EmptyPanel"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Margin="0,100,0,0">
+                    <StackPanel.Style>
+                        <Style TargetType="StackPanel">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding IsLoading}" Value="False"/>
+                                        <Condition Binding="{Binding HasTransactions}" Value="False"/>
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </MultiDataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </StackPanel.Style>
+                    <TextBlock Text="{Binding EmptyMessage}"
+                               FontSize="24"
+                               FontFamily="Inter"
+                               Foreground="{StaticResource TextGray}"
+                               HorizontalAlignment="Center"
+                               TextAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Transaction List -->
+                <ItemsControl ItemsSource="{Binding Transactions}">
+                    <ItemsControl.Style>
+                        <Style TargetType="ItemsControl">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasTransactions}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ItemsControl.Style>
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource TransactionCardStyle}"
+                                    Tag="{Binding}">
+                                <StackPanel>
+
+                                    <!-- Order Code and Status Badge -->
+                                    <Grid Margin="0,0,0,8">
+                                        <StackPanel>
+                                            <TextBlock Text="Order Code"
+                                                       FontSize="12"
+                                                       FontFamily="Inter"
+                                                       Foreground="{StaticResource TextGray}"
+                                                       Margin="0,0,0,4"/>
+                                            <TextBlock Text="{Binding OrderCode}"
+                                                       FontSize="15"
+                                                       FontWeight="Bold"
+                                                       FontFamily="Inter"
+                                                       Foreground="Black"/>
+                                        </StackPanel>
+
+                                        <!-- Status Badge -->
+                                        <Border Style="{StaticResource StatusBadgeStyle}">
+                                            <Border.Background>
+                                                <SolidColorBrush Color="{Binding StatusColor}"/>
+                                            </Border.Background>
+                                            <TextBlock Text="{Binding Status}"
+                                                       FontSize="12"
+                                                       FontWeight="SemiBold"
+                                                       FontFamily="Inter"
+                                                       Foreground="White"
+                                                       VerticalAlignment="Center"
+                                                       TextAlignment="Center"/>
+                                        </Border>
+                                    </Grid>
+
+                                    <!-- Destination Name -->
+                                    <TextBlock Text="{Binding DestinationName}"
+                                               FontSize="16"
+                                               FontWeight="Bold"
+                                               FontFamily="Inter"
+                                               Foreground="Black"
+                                               TextWrapping="Wrap"
+                                               Margin="0,8,0,6"/>
+
+                                    <!-- Location -->
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                                        <Image Source="/Images/location_on.png"
+                                               Width="16"
+                                               Height="16"
+                                               Margin="0,0,5,0"
+                                               VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding DestinationLocation}"
+                                                   FontSize="14"
+                                                   FontFamily="Inter"
+                                                   Foreground="{StaticResource TextGray}"
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
+
+                                    <!-- Can be used on -->
+                                    <StackPanel Margin="0,0,0,16">
+                                        <TextBlock Text="Can be used on"
+                                                   FontSize="12"
+                                                   FontFamily="Inter"
+                                                   Foreground="{StaticResource TextGray}"
+                                                   Margin="0,0,0,4"/>
+                                        <TextBlock Text="{Binding BookingDateFormatted}"
+                                                   FontSize="14"
+                                                   FontWeight="SemiBold"
+                                                   FontFamily="Inter"
+                                                   Foreground="Black"/>
+                                    </StackPanel>
+
+                                    <!-- Lead Traveler Info -->
+                                    <StackPanel Margin="0,0,0,16">
+                                        <TextBlock Text="Lead traveler info"
+                                                   FontSize="12"
+                                                   FontFamily="Inter"
+                                                   Foreground="{StaticResource TextGray}"
+                                                   Margin="0,0,0,4"/>
+                                        <TextBlock Text="{Binding FullName}"
+                                                   FontSize="14"
+                                                   FontWeight="SemiBold"
+                                                   FontFamily="Inter"
+                                                   Foreground="Black"/>
+                                        <TextBlock Text="{Binding IdNumber}"
+                                                   FontSize="14"
+                                                   FontWeight="Regular"
+                                                   FontFamily="Inter"
+                                                   Foreground="Black"/>
+                                        <TextBlock Text="{Binding MobileNumber}"
+                                                   FontSize="14"
+                                                   FontWeight="Regular"
+                                                   FontFamily="Inter"
+                                                   Foreground="Black"/>
+                                    </StackPanel>
+
+                                    <!-- PAX and Total Price -->
+                                    <Grid>
+                                        <TextBlock Text="{Binding PaxDisplay}"
+                                                   FontSize="14"
+                                                   FontWeight="Regular"
+                                                   FontFamily="Inter"
+                                                   Foreground="Black"
+                                                   VerticalAlignment="Center"/>
+
+                                        <TextBlock Text="{Binding TotalAmountFormatted}"
+                                                   FontSize="20"
+                                                   FontWeight="Bold"
+                                                   FontFamily="Inter"
+                                                   Foreground="{StaticResource PriceRed}"
+                                                   HorizontalAlignment="Right"
+                                                   VerticalAlignment="Center"/>
+                                    </Grid>
+
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

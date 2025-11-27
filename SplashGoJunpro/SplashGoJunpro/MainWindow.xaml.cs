@@ -31,7 +31,8 @@ namespace SplashGoJunpro
         /// </summary>
         private void History_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("History page is under construction.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+            //MessageBox.Show("History page is under construction.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+            MainFrame.Navigate(new TransactionHistoryPage());
         }
 
         /// <summary>
