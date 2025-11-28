@@ -127,12 +127,40 @@ namespace SplashGoJunpro.Models
             set { _closeTime = value; OnPropertyChanged(); }
         }
 
-        public void UpdateInfo(string name, string location, string desc, decimal price)
+        public string ScheduleDisplay
         {
-            Name = name;
-            Location = location;
-            Description = desc;
-            Price = price;
+            get
+            {
+                if (DayOfWeek == null)
+                    return "N/A";
+
+                string dayName = DayOfWeekToName(DayOfWeek.Value);
+
+                if (OpenTime == null || CloseTime == null)
+                    return $"{dayName} · Closed";
+
+                return $"{dayName} · {OpenTime:hh\\:mm}–{CloseTime:hh\\:mm}";
+            }
+        }
+
+        public string ScheduleTimeDisplay
+        {
+            get
+            {
+                if (OpenTime == null || CloseTime == null)
+                    return $"Closed";
+
+                return $"{OpenTime:hh\\:mm}–{CloseTime:hh\\:mm}";
+            }
+        }
+
+        // helper that maps 0..6 -> Sunday..Saturday (adjust if your DB uses different mapping)
+        private static string DayOfWeekToName(int dow)
+        {
+            // ensure valid range
+            string[] names = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
+            if (dow < 0 || dow > 6) return "Unknown";
+            return names[dow];
         }
 
         // INotifyPropertyChanged implementation
