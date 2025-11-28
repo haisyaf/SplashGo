@@ -102,10 +102,11 @@ namespace SplashGoJunpro.Models
             }
         }
 
-        public int? Owner
+        public string Owner
         {
             get => _owner;
             set { _owner = value; OnPropertyChanged(); }
+        }
 
 
         public List<string> Offer
