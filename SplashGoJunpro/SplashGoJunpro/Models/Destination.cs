@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
@@ -14,6 +15,10 @@ namespace SplashGoJunpro.Models
         private string _category;
         private string _imagePath;
         private bool _isBookmarked;
+        private List<string> _offer;
+        private int? _dayOfWeek;
+        private TimeSpan? _openTime;
+        private TimeSpan? _closeTime;
 
         public int DestinationId
         {
@@ -97,14 +102,29 @@ namespace SplashGoJunpro.Models
             }
         }
 
-        public bool IsBookmarked
+
+        public List<string> Offer
         {
-            get => _isBookmarked;
-            set
-            {
-                _isBookmarked = value;
-                OnPropertyChanged();
-            }
+            get => _offer;
+            set { _offer = value; OnPropertyChanged(); }
+        }
+
+        public int? DayOfWeek
+        {
+            get => _dayOfWeek;
+            set { _dayOfWeek = value; OnPropertyChanged(); }
+        }
+
+        public TimeSpan? OpenTime
+        {
+            get => _openTime;
+            set { _openTime = value; OnPropertyChanged(); }
+        }
+
+        public TimeSpan? CloseTime
+        {
+            get => _closeTime;
+            set { _closeTime = value; OnPropertyChanged(); }
         }
 
         public void UpdateInfo(string name, string location, string desc, decimal price)
