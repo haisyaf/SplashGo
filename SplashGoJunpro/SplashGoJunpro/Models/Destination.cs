@@ -14,7 +14,7 @@ namespace SplashGoJunpro.Models
         private decimal _price;
         private string _category;
         private string _imagePath;
-        private bool _isBookmarked;
+        private string _owner;
         private List<string> _offer;
         private int? _dayOfWeek;
         private TimeSpan? _openTime;
@@ -101,6 +101,11 @@ namespace SplashGoJunpro.Models
                 OnPropertyChanged();
             }
         }
+
+        public int? Owner
+        {
+            get => _owner;
+            set { _owner = value; OnPropertyChanged(); }
 
 
         public List<string> Offer
