@@ -285,12 +285,6 @@ namespace SplashGoJunpro.ViewModels
                 MessageBoxButton.OK,
                 MessageBoxImage.Information
             );
-
-            // Toggle UI bookmark (if you want the heart to change)
-            if (parameter is Destination destination)
-            {
-                destination.IsBookmarked = !destination.IsBookmarked;
-            }
         }
 
         private void Search(object parameter)

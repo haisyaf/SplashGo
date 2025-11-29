@@ -184,12 +184,6 @@ namespace SplashGoJunpro.ViewModels
                 MessageBoxButton.OK,
                 MessageBoxImage.Information
             );
-
-            // Toggle bookmark visual state
-            if (parameter is Destination destination)
-            {
-                destination.IsBookmarked = !destination.IsBookmarked;
-            }
         }
 
         #endregion

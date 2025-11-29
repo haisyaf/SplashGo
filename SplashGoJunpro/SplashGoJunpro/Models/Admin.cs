@@ -41,8 +41,6 @@ namespace SplashGoJunpro.Models
         // Admin can update destination info
         public void UpdateDestination(Destination destination, string name, string location, string desc, decimal price)
         {
-            if (IsLoggedIn)
-                destination.UpdateInfo(name, location, desc, price);
         }
     }
 }
