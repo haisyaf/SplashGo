@@ -176,13 +176,18 @@
                     </StackPanel>
                 </Button>
 
-                <!-- Logout -->
+                <!-- Login/Logout (Dynamic) -->
                 <Button Style="{StaticResource SidebarButtonStyle}" 
-                        Click="Logout_Click"
+                        Click="LoginLogout_Click"
                         Margin="0,0,0,40">
                     <StackPanel Orientation="Horizontal" Margin="28,0,20,0">
-                        <Image Source="/Images/logout.png" Width="48" Height="48" Margin="0,0,15,0"/>
-                        <TextBlock Text="Logout" 
+                        <Image x:Name="LoginLogoutImage" 
+                               Source="/Images/logout.png" 
+                               Width="48" 
+                               Height="48" 
+                               Margin="0,0,15,0"/>
+                        <TextBlock x:Name="LoginLogoutText"
+                                   Text="Logout" 
                                    VerticalAlignment="Center" 
                                    FontSize="24"
                                    FontFamily="Inter"

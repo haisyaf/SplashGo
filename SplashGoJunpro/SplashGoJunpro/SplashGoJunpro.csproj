@@ -419,6 +419,7 @@
     <Resource Include="Images\home.png" />
     <Resource Include="Images\logout.png" />
     <Resource Include="Images\location_on.png" />
+    <Resource Include="Images\login.png" />
     <Content Include="Resources\client_secret.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

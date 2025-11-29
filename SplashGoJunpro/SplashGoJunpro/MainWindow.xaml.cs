@@ -14,8 +14,32 @@ namespace SplashGoJunpro
         {
             InitializeComponent();
 
+            // Update login/logout button based on session status
+            UpdateLoginLogoutButton();
+
             // Navigate to Dashboard by default
             MainFrame.Navigate(new DashboardPage());
+        }
+
+        /// <summary>
+        /// Update tombol Login/Logout berdasarkan status login
+        /// </summary>
+        private void UpdateLoginLogoutButton()
+        {
+            if (SessionManager.IsLoggedIn)
+            {
+                // Tampilkan sebagai Logout
+                LoginLogoutImage.Source = new System.Windows.Media.Imaging.BitmapImage(
+                    new Uri("/Images/logout.png", UriKind.Relative));
+                LoginLogoutText.Text = "Logout";
+            }
+            else
+            {
+                // Tampilkan sebagai Login
+                LoginLogoutImage.Source = new System.Windows.Media.Imaging.BitmapImage(
+                    new Uri("/Images/login.png", UriKind.Relative));
+                LoginLogoutText.Text = "Login";
+            }
         }
 
         /// <summary>
@@ -60,25 +84,36 @@ namespace SplashGoJunpro
         }
 
         /// <summary>
-        /// Event handler untuk Logout
+        /// Event handler untuk Login/Logout
         /// </summary>
-        private void Logout_Click(object sender, RoutedEventArgs e)
+        private void LoginLogout_Click(object sender, RoutedEventArgs e)
         {
-            var result = MessageBox.Show(
-                "Are you sure you want to logout?",
-                "Logout Confirmation",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question
-            );
-
-            if (result == MessageBoxResult.Yes)
+            if (SessionManager.IsLoggedIn)
             {
-                // Clear session
-                SessionManager.IsLoggedIn = false;
-                SessionManager.CurrentUserEmail = null;
-                SessionManager.LoginToken = null;
+                // Logout logic
+                var result = MessageBox.Show(
+                    "Are you sure you want to logout?",
+                    "Logout Confirmation",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question
+                );
 
-                // Navigate to Login
+                if (result == MessageBoxResult.Yes)
+                {
+                    // Clear session
+                    SessionManager.IsLoggedIn = false;
+                    SessionManager.CurrentUserEmail = null;
+                    SessionManager.LoginToken = null;
+
+                    // Navigate to Login
+                    var loginWindow = new LoginWindow();
+                    loginWindow.Show();
+                    this.Close();
+                }
+            }
+            else
+            {
+                // Login logic - navigate to login window
                 var loginWindow = new LoginWindow();
                 loginWindow.Show();
                 this.Close();
