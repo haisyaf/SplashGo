@@ -12,9 +12,14 @@
     <Page.Resources>
         <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
         <local:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter"/>
+        <local:PlaceholderVisibilityConverter x:Key="PlaceholderVisibilityConverter"/>
 
-        <!-- Add the missing TextGray resource -->
+        <!-- Color Resources -->
+        <SolidColorBrush x:Key="PrimaryBlue" Color="#0066CC"/>
+        <SolidColorBrush x:Key="LightGray" Color="#F5F5F5"/>
         <SolidColorBrush x:Key="TextGray" Color="#666666"/>
+        <SolidColorBrush x:Key="DarkBlue" Color="#1A2332"/>
+        <SolidColorBrush x:Key="PlaceholderGray" Color="#999999"/>
 
         <!-- Card Style -->
         <Style x:Key="CardStyle" TargetType="Border">
@@ -59,22 +64,254 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
+
+        <!-- Input TextBox Style - Similar to UserProfilePage -->
+        <Style x:Key="ProfileInputStyle" TargetType="TextBox">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontFamily" Value="Inter"/>
+            <Setter Property="Padding" Value="15,12,15,12"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Height" Value="50"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                        Margin="0"
+                                        VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- TextArea Style for Description -->
+        <Style x:Key="TextAreaStyle" TargetType="TextBox">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontFamily" Value="Inter"/>
+            <Setter Property="Padding" Value="15,12"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="AcceptsReturn" Value="True"/>
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                        Margin="0"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Save Button Style -->
+        <Style x:Key="SaveButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource PrimaryBlue}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Height" Value="50"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontFamily" Value="Inter"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Opacity" Value="0.9"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Cancel Button Style -->
+        <Style x:Key="CancelButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource TextGray}"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="Height" Value="50"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontFamily" Value="Inter"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource LightGray}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="CategoryComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontFamily" Value="Inter"/>
+            <Setter Property="Padding" Value="15,12"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Height" Value="50"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <Border x:Name="Border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="8">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <ContentPresenter Grid.Column="0"
+                                            x:Name="ContentSite"
+                                            IsHitTestVisible="False"
+                                            Content="{TemplateBinding SelectionBoxItem}"
+                                            ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                            ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                            Margin="15,0,0,0"
+                                            VerticalAlignment="Center"
+                                            HorizontalAlignment="Left"/>
+
+                                    <ToggleButton Grid.Column="1"
+                                        x:Name="ToggleButton"
+                                        Focusable="false"
+                                        IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                        ClickMode="Press"
+                                        BorderThickness="0"
+                                        Background="Transparent"
+                                        Width="40">
+                                        <Path Data="M 0 0 L 4 4 L 8 0 Z"
+                                      Fill="#666666"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"/>
+                                    </ToggleButton>
+                                </Grid>
+                            </Border>
+
+                            <Popup x:Name="Popup"
+                           Placement="Bottom"
+                           IsOpen="{TemplateBinding IsDropDownOpen}"
+                           AllowsTransparency="True"
+                           Focusable="False"
+                           PopupAnimation="Slide">
+                                <Border Background="White"
+                                BorderBrush="#E0E0E0"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Margin="0,5,0,0"
+                                MinWidth="{TemplateBinding ActualWidth}">
+                                    <Border.Effect>
+                                        <DropShadowEffect Color="Black" Opacity="0.1" BlurRadius="10" ShadowDepth="2"/>
+                                    </Border.Effect>
+                                    <ScrollViewer Margin="0,5" MaxHeight="200">
+                                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained"/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="CategoryComboBoxItemStyle" TargetType="ComboBoxItem">
+            <Setter Property="Padding" Value="15,10"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <Border x:Name="ItemBorder"
+                        Background="Transparent"
+                        Padding="{TemplateBinding Padding}">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#F5F5F5"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#E3F2FD"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
     </Page.Resources>
 
     <Grid Background="White">
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="20">
                 <!-- Header -->
-                <StackPanel Margin="0,0,0,20">
-                    <TextBlock Text="My Destinations" 
-                              FontSize="28" 
-                              FontWeight="Bold" 
-                              Foreground="#333333"/>
-                    <TextBlock Text="Manage and analyze your destinations" 
-                              FontSize="14" 
-                              Foreground="#666666" 
-                              Margin="0,5,0,0"/>
-                </StackPanel>
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Header -->
+                    <StackPanel Grid.Column="0" Margin="0,0,0,0">
+                        <TextBlock Text="My Destinations" 
+                                   FontSize="28" 
+                                   FontWeight="Bold" 
+                                   Foreground="#333333"/>
+                        <TextBlock Text="Manage and analyze your destinations" 
+                                   FontSize="14" 
+                                   Foreground="#666666" 
+                                   Margin="0,5,0,0"/>
+                    </StackPanel>
+
+                    <!-- Add Button -->
+                    <Button Grid.Column="1"
+                            Content="Add"
+                            Style="{StaticResource ActionButtonStyle}"
+                            FontSize="16"
+                            FontWeight="SemiBold"
+                            Width="100"
+                            Height="40"
+                            Command="{Binding AddCommand}"
+                            VerticalAlignment="Top"
+                            Margin="20,0,0,0"/>
+                </Grid>
+
 
                 <!-- Loading Indicator -->
                 <StackPanel x:Name="LoadingPanel"
@@ -339,5 +576,164 @@
                 </StackPanel>
             </StackPanel>
         </ScrollViewer>
+
+        <!-- Add Destination Popup -->
+        <Grid x:Name="AddDestinationPopup"
+              Visibility="{Binding IsAddPopupOpen, Converter={StaticResource BoolToVisibilityConverter}}"
+              Background="#80000000"
+              Panel.ZIndex="100">
+            <Border Background="White"
+                    CornerRadius="15"
+                    Padding="40"
+                    Width="600"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Center">
+                <Border.Effect>
+                    <DropShadowEffect Color="Black" Opacity="0.3" BlurRadius="20" ShadowDepth="5"/>
+                </Border.Effect>
+
+                <StackPanel>
+                    <!-- Header -->
+                    <Grid Margin="0,0,0,30">
+                        <TextBlock Text="Add Destination" 
+                                  FontSize="28"
+                                  FontWeight="Bold"
+                                  FontFamily="Inter"
+                                  HorizontalAlignment="Left"/>
+
+                        <!-- Close Button -->
+                        <Button HorizontalAlignment="Right"
+                                VerticalAlignment="Top"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Width="35"
+                                Height="35"
+                                Cursor="Hand"
+                                Command="{Binding CancelAddCommand}">
+                            <Path Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" 
+                                  Fill="{StaticResource TextGray}"
+                                  Width="20" 
+                                  Height="20" 
+                                  Stretch="Uniform"/>
+                        </Button>
+                    </Grid>
+
+                    <!-- Name -->
+                    <StackPanel Margin="0,0,0,20">
+                        <TextBlock Text="Name *" 
+                                  FontSize="14"
+                                  FontWeight="Medium"
+                                  FontFamily="Inter"
+                                  Foreground="{StaticResource TextGray}"
+                                  Margin="0,0,0,8"/>
+                        <TextBox x:Name="NameTextBox"
+                                Style="{StaticResource ProfileInputStyle}"/>
+                    </StackPanel>
+
+                    <!-- Location -->
+                    <StackPanel Margin="0,0,0,20">
+                        <TextBlock Text="Location *" 
+                                  FontSize="14"
+                                  FontWeight="Medium"
+                                  FontFamily="Inter"
+                                  Foreground="{StaticResource TextGray}"
+                                  Margin="0,0,0,8"/>
+                        <TextBox x:Name="LocationTextBox"
+                                Style="{StaticResource ProfileInputStyle}"/>
+                    </StackPanel>
+
+                    <!-- Price -->
+                    <StackPanel Margin="0,0,0,20">
+                        <TextBlock Text="Price *" 
+                                  FontSize="14"
+                                  FontWeight="Medium"
+                                  FontFamily="Inter"
+                                  Foreground="{StaticResource TextGray}"
+                                  Margin="0,0,0,8"/>
+                        <TextBox x:Name="PriceTextBox"
+                                Style="{StaticResource ProfileInputStyle}"/>
+                    </StackPanel>
+
+                    <!-- Description -->
+                    <StackPanel Margin="0,0,0,20">
+                        <TextBlock Text="Description *" 
+                                  FontSize="14"
+                                  FontWeight="Medium"
+                                  FontFamily="Inter"
+                                  Foreground="{StaticResource TextGray}"
+                                  Margin="0,0,0,8"/>
+                        <TextBox x:Name="DescriptionTextBox"
+                                Style="{StaticResource TextAreaStyle}"
+                                Height="100"/>
+                    </StackPanel>
+
+                    <!-- Quota -->
+                    <StackPanel Margin="0,0,0,20">
+                        <TextBlock Text="Quota *" 
+                                  FontSize="14"
+                                  FontWeight="Medium"
+                                  FontFamily="Inter"
+                                  Foreground="{StaticResource TextGray}"
+                                  Margin="0,0,0,8"/>
+                        <TextBox x:Name="QuotaTextBox"
+                                Style="{StaticResource ProfileInputStyle}"/>
+                    </StackPanel>
+
+                    <!-- Category -->
+                    <StackPanel Margin="0,0,0,20">
+                        <TextBlock Text="Category *" 
+                                  FontSize="14"
+                                  FontWeight="Medium"
+                                  FontFamily="Inter"
+                                  Foreground="{StaticResource TextGray}"
+                                  Margin="0,0,0,8"/>
+                        <ComboBox x:Name="CategoryComboBox"
+                                  Style="{StaticResource CategoryComboBoxStyle}"
+                                  ItemContainerStyle="{StaticResource CategoryComboBoxItemStyle}">
+                            <ComboBoxItem Content="Hotels" Tag="Hotels"/>
+                            <ComboBoxItem Content="Beachclubs" Tag="Beachclubs"/>
+                            <ComboBoxItem Content="Tours" Tag="Tours"/>
+                            <ComboBoxItem Content="Spas" Tag="Spas"/>
+                            <ComboBoxItem Content="Culinaries" Tag="Culinaries"/>
+                            <ComboBoxItem Content="Recreational" Tag="Recreational"/>
+                            <ComboBoxItem Content="Souvenirs" Tag="Souvenirs"/>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <!-- Offer -->
+                    <StackPanel Margin="0,0,0,20">
+                        <TextBlock Text="Offer (comma separated)" 
+                                  FontSize="14"
+                                  FontWeight="Medium"
+                                  FontFamily="Inter"
+                                  Foreground="{StaticResource TextGray}"
+                                  Margin="0,0,0,8"/>
+                        <TextBox x:Name="OfferTextBox"
+                                Style="{StaticResource ProfileInputStyle}"/>
+                    </StackPanel>
+
+                    <!-- Buttons -->
+                    <Grid Margin="0,10,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="15"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Cancel Button -->
+                        <Button Grid.Column="0"
+                                Content="Cancel"
+                                Style="{StaticResource CancelButtonStyle}"
+                                Command="{Binding CancelAddCommand}"/>
+
+                        <!-- Save Button -->
+                        <Button Grid.Column="2"
+                                Content="Add Destination"
+                                Style="{StaticResource SaveButtonStyle}"
+                                Command="{Binding SaveAddCommand}"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
 </Page>

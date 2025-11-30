@@ -80,6 +80,16 @@ namespace SplashGoJunpro
         /// </summary>
         private void Profile_Click(object sender, RoutedEventArgs e)
         {
+            if(!SessionManager.IsLoggedIn)
+            {
+                MessageBox.Show(
+                    "You need to be logged in to access the profile page.",
+                    "Access Denied",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
+                return;
+            }
             MainFrame.Navigate(new UserProfilePage());
         }
 

@@ -9,6 +9,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Input;
 
 namespace SplashGoJunpro.ViewModels
 {
@@ -19,6 +20,8 @@ namespace SplashGoJunpro.ViewModels
         private bool _isLoading;
         private string _emptyMessage;
         private DestinationAnalytics _analytics;
+        private bool _isAddPopupOpen;
+        private NewDestinationModel _newDestination;
 
         public MyDestinationsViewModel()
         {
@@ -26,6 +29,13 @@ namespace SplashGoJunpro.ViewModels
             _analytics = new DestinationAnalytics();
             _emptyMessage = "Loading destinations...";
             _isLoading = true;
+            _isAddPopupOpen = false;
+            _newDestination = new NewDestinationModel();
+
+            // Initialize commands
+            AddCommand = new RelayCommand(_ => OpenAddPopup());
+            SaveAddCommand = new RelayCommand(async _ => await SaveNewDestination());
+            CancelAddCommand = new RelayCommand(_ => CloseAddPopup());
         }
 
         #region Properties
@@ -83,9 +93,190 @@ namespace SplashGoJunpro.ViewModels
             }
         }
 
+        public bool IsAddPopupOpen
+        {
+            get => _isAddPopupOpen;
+            set
+            {
+                _isAddPopupOpen = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public NewDestinationModel NewDestination
+        {
+            get => _newDestination;
+            set
+            {
+                _newDestination = value;
+                OnPropertyChanged();
+            }
+        }
+
+        #endregion
+
+        #region Commands
+
+        public ICommand AddCommand { get; }
+        public ICommand SaveAddCommand { get; }
+        public ICommand CancelAddCommand { get; }
+
         #endregion
 
         #region Methods
+
+        /// <summary>
+        /// Open add destination popup
+        /// </summary>
+        private void OpenAddPopup()
+        {
+            if (!SessionManager.IsLoggedIn)
+            {
+                MessageBox.Show(
+                    "Please login first to add destination",
+                    "Login Required",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
+                return;
+            }
+
+            NewDestination = new NewDestinationModel();
+            IsAddPopupOpen = true;
+        }
+
+        /// <summary>
+        /// Close add destination popup
+        /// </summary>
+        private void CloseAddPopup()
+        {
+            IsAddPopupOpen = false;
+            NewDestination = new NewDestinationModel();
+        }
+
+        /// <summary>
+        /// Save new destination to database
+        /// </summary>
+        private async Task SaveNewDestination()
+        {
+            try
+            {
+                // Validation
+                if (string.IsNullOrWhiteSpace(NewDestination.Name))
+                {
+                    MessageBox.Show("Please enter destination name", "Validation Error",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                if (string.IsNullOrWhiteSpace(NewDestination.Location))
+                {
+                    MessageBox.Show("Please enter location", "Validation Error",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                if (string.IsNullOrWhiteSpace(NewDestination.Price) || !decimal.TryParse(NewDestination.Price, out decimal price))
+                {
+                    MessageBox.Show("Please enter valid price", "Validation Error",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                if (string.IsNullOrWhiteSpace(NewDestination.Description))
+                {
+                    MessageBox.Show("Please enter description", "Validation Error",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                if (string.IsNullOrWhiteSpace(NewDestination.Quota) || !int.TryParse(NewDestination.Quota, out int quota))
+                {
+                    MessageBox.Show("Please enter valid quota", "Validation Error",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                if (string.IsNullOrWhiteSpace(NewDestination.Category))
+                {
+                    MessageBox.Show("Please enter category", "Validation Error",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                IsLoading = true;
+
+                // Process offer (comma separated to JSON array)
+                string offerJson = "[]";
+                if (!string.IsNullOrWhiteSpace(NewDestination.OfferText))
+                {
+                    var offers = NewDestination.OfferText
+                        .Split(',')
+                        .Select(o => o.Trim())
+                        .Where(o => !string.IsNullOrEmpty(o))
+                        .Select(o => $"\"{o}\"")
+                        .ToList();
+                    offerJson = $"[{string.Join(",", offers)}]";
+                }
+
+                // Insert to database
+                var db = new NeonDb();
+                string sql = @"
+                    INSERT INTO destinations (name, location, price, description, quota, category, offer, owner_id)
+                    VALUES (@Name, @Location, @Price, @Description, @Quota, @Category, @Offer::jsonb, @OwnerId)
+                    RETURNING destinationid";
+
+                var parameters = new Dictionary<string, object>
+                {
+                    { "@Name", NewDestination.Name },
+                    { "@Location", NewDestination.Location },
+                    { "@Price", price },
+                    { "@Description", NewDestination.Description },
+                    { "@Quota", quota },
+                    { "@Category", NewDestination.Category },
+                    { "@Offer", offerJson },
+                    { "@OwnerId", SessionManager.CurrentUserId }
+                };
+
+                var result = await db.QueryAsync(sql, parameters);
+
+                if (result != null && result.Count > 0)
+                {
+                    MessageBox.Show(
+                        "Destination added successfully!",
+                        "Success",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information
+                    );
+
+                    // Close popup and refresh list
+                    CloseAddPopup();
+                    await LoadMyDestinations();
+                }
+                else
+                {
+                    MessageBox.Show(
+                        "Failed to add destination",
+                        "Error",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Error adding destination: {ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
 
         /// <summary>
         /// Load destinations owned by current user
@@ -103,96 +294,71 @@ namespace SplashGoJunpro.ViewModels
                     return;
                 }
 
-                // TODO: Query dari database
-                // var db = new NeonDb();
-                // string sql = @"
-                //     SELECT 
-                //         d.destination_id,
-                //         d.name,
-                //         d.location,
-                //         d.price,
-                //         d.description,
-                //         d.available,
-                //         d.category,
-                //         d.image_link,
-                //         COUNT(DISTINCT b.booking_id) as total_bookings,
-                //         SUM(CASE WHEN b.status = 'Paid' THEN b.total_amount ELSE 0 END) as total_revenue,
-                //         SUM(CASE WHEN b.status = 'Paid' THEN b.pax_count ELSE 0 END) as total_visitors,
-                //         AVG(CASE WHEN r.rating IS NOT NULL THEN r.rating ELSE 0 END) as avg_rating,
-                //         COUNT(DISTINCT r.review_id) as total_reviews
-                //     FROM destinations d
-                //     LEFT JOIN bookings b ON d.destination_id = b.destination_id
-                //     LEFT JOIN reviews r ON d.destination_id = r.destination_id
-                //     WHERE d.owner_id = @OwnerId
-                //     GROUP BY d.destination_id
-                //     ORDER BY d.name
-                // ";
-                // 
-                // var parameters = new Dictionary<string, object>
-                // {
-                //     { "@OwnerId", SessionManager.CurrentUser.UserId }
-                // };
-                // 
-                // var rows = await db.QueryAsync(sql, parameters);
+                // Query dari database
+                var db = new NeonDb();
+                string sql = @"
+            SELECT 
+                d.destinationid,
+                d.name,
+                d.location,
+                d.price,
+                d.description,
+                d.quota as available,
+                d.category,
+                d.image_link,
+                COUNT(DISTINCT b.bookingid) as total_bookings,
+                COALESCE(SUM(CASE WHEN b.status = 'Paid' THEN b.totalprice ELSE 0 END), 0) as total_revenue,
+                COALESCE(SUM(CASE WHEN b.status = 'Paid' THEN b.amount ELSE 0 END), 0) as total_visitors
+                FROM destinations d
+                LEFT JOIN bookings b ON d.destinationid = b.destinationid
+                WHERE d.owner_id = @OwnerId
+                GROUP BY d.destinationid, d.name, d.location, d.price, d.description, 
+                         d.quota, d.category, d.image_link
+                ORDER BY d.name";
 
-                await Task.Delay(1000);
-
-                var dummyDestinations = new ObservableCollection<DestinationWithStats>
+                var parameters = new Dictionary<string, object>
                 {
-                    new DestinationWithStats
-                    {
-                        DestinationId = 1,
-                        Name = "Hotel Malioboro Yogyakarta",
-                        Location = "Malioboro, Yogyakarta",
-                        Price = 500000,
-                        Description = "Hotel berbintang di jantung kota Yogyakarta",
-                        Available = 25,
-                        Category = "Hotel",
-                        ImageLink = "/Images/malioboro.jpg",
-                        TotalBookings = 156,
-                        TotalRevenue = 78000000,
-                        TotalVisitors = 312,
-                        AverageRating = 4.5,
-                        TotalReviews = 89,
-                        MonthlyData = GenerateMonthlyData(156, 78000000)
-                    },
-                    new DestinationWithStats
-                    {
-                        DestinationId = 2,
-                        Name = "Pantai Parangtritis",
-                        Location = "Bantul, Yogyakarta",
-                        Price = 50000,
-                        Description = "Pantai dengan pemandangan sunset yang indah",
-                        Available = 100,
-                        Category = "Wisata Alam",
-                        ImageLink = "/Images/parangtritis.jpg",
-                        TotalBookings = 89,
-                        TotalRevenue = 13350000,
-                        TotalVisitors = 267,
-                        AverageRating = 4.2,
-                        TotalReviews = 45,
-                        MonthlyData = GenerateMonthlyData(89, 13350000)
-                    },
-                    new DestinationWithStats
-                    {
-                        DestinationId = 3,
-                        Name = "Candi Prambanan",
-                        Location = "Sleman, Yogyakarta",
-                        Price = 75000,
-                        Description = "Kompleks candi Hindu terbesar di Indonesia",
-                        Available = 200,
-                        Category = "Wisata Budaya",
-                        ImageLink = "/Images/prambanan.jpg",
-                        TotalBookings = 234,
-                        TotalRevenue = 52650000,
-                        TotalVisitors = 702,
-                        AverageRating = 4.8,
-                        TotalReviews = 156,
-                        MonthlyData = GenerateMonthlyData(234, 52650000)
-                    }
+                    { "@OwnerId", SessionManager.CurrentUserId }
                 };
 
-                Destinations = dummyDestinations;
+                var rows = await db.QueryAsync(sql, parameters);
+                MessageBox.Show($"Rows returned: {rows?.Count ?? 0}");
+
+
+                var destinations = new ObservableCollection<DestinationWithStats>();
+
+                if (rows != null && rows.Count > 0)
+                {
+                    foreach (var row in rows)
+                    {
+                        var destination = new DestinationWithStats
+                        {
+                            DestinationId = Convert.ToInt32(row["destinationid"]),
+                            Name = row["name"]?.ToString() ?? "",
+                            Location = row["location"]?.ToString() ?? "",
+                            Price = Convert.ToDecimal(row["price"]),
+                            Description = row["description"]?.ToString() ?? "",
+                            Available = Convert.ToInt32(row["available"]),
+                            Category = row["category"]?.ToString() ?? "",
+                            ImageLink = row["image_link"]?.ToString() ?? "",
+                            TotalBookings = Convert.ToInt32(row["total_bookings"]),
+                            TotalRevenue = Convert.ToDecimal(row["total_revenue"]),
+                            TotalVisitors = Convert.ToInt32(row["total_visitors"]),
+                            AverageRating = 0, // Removed reviews
+                            TotalReviews = 0   // Removed reviews
+                        };
+
+                        // Generate monthly data
+                        destination.MonthlyData = GenerateMonthlyData(
+                            destination.TotalBookings,
+                            destination.TotalRevenue
+                        );
+
+                        destinations.Add(destination);
+                    }
+                }
+
+                Destinations = destinations;
                 CalculateAnalytics();
 
                 if (Destinations.Count == 0)
@@ -348,6 +514,69 @@ namespace SplashGoJunpro.ViewModels
     }
 
     #region Model Classes
+
+    /// <summary>
+    /// Model for new destination form
+    /// </summary>
+    public class NewDestinationModel : INotifyPropertyChanged
+    {
+        private string _name;
+        private string _location;
+        private string _price;
+        private string _description;
+        private string _quota;
+        private string _category;
+        private string _offerText;
+
+        public string Name
+        {
+            get => _name;
+            set { _name = value; OnPropertyChanged(); }
+        }
+
+        public string Location
+        {
+            get => _location;
+            set { _location = value; OnPropertyChanged(); }
+        }
+
+        public string Price
+        {
+            get => _price;
+            set { _price = value; OnPropertyChanged(); }
+        }
+
+        public string Description
+        {
+            get => _description;
+            set { _description = value; OnPropertyChanged(); }
+        }
+
+        public string Quota
+        {
+            get => _quota;
+            set { _quota = value; OnPropertyChanged(); }
+        }
+
+        public string Category
+        {
+            get => _category;
+            set { _category = value; OnPropertyChanged(); }
+        }
+
+        public string OfferText
+        {
+            get => _offerText;
+            set { _offerText = value; OnPropertyChanged(); }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
 
     /// <summary>
     /// Destination model with statistics

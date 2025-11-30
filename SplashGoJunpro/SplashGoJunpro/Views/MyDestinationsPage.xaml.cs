@@ -27,6 +27,77 @@ namespace SplashGoJunpro.Views
 
             // Load destinations on page load
             Loaded += MyDestinationsPage_Loaded;
+
+            // Wire up textbox bindings manually for popup
+            WireUpTextBoxBindings();
+        }
+
+        /// <summary>
+        /// Wire up textbox bindings for the popup form
+        /// </summary>
+        // Update method WireUpTextBoxBindings() di MyDestinationsPage.xaml.cs
+
+        private void WireUpTextBoxBindings()
+        {
+            try
+            {
+                // Create bindings for each textbox to ViewModel properties
+                var nameBinding = new System.Windows.Data.Binding("NewDestination.Name")
+                {
+                    Mode = System.Windows.Data.BindingMode.TwoWay,
+                    UpdateSourceTrigger = System.Windows.Data.UpdateSourceTrigger.PropertyChanged
+                };
+                NameTextBox.SetBinding(TextBox.TextProperty, nameBinding);
+
+                var locationBinding = new System.Windows.Data.Binding("NewDestination.Location")
+                {
+                    Mode = System.Windows.Data.BindingMode.TwoWay,
+                    UpdateSourceTrigger = System.Windows.Data.UpdateSourceTrigger.PropertyChanged
+                };
+                LocationTextBox.SetBinding(TextBox.TextProperty, locationBinding);
+
+                var priceBinding = new System.Windows.Data.Binding("NewDestination.Price")
+                {
+                    Mode = System.Windows.Data.BindingMode.TwoWay,
+                    UpdateSourceTrigger = System.Windows.Data.UpdateSourceTrigger.PropertyChanged
+                };
+                PriceTextBox.SetBinding(TextBox.TextProperty, priceBinding);
+
+                var descriptionBinding = new System.Windows.Data.Binding("NewDestination.Description")
+                {
+                    Mode = System.Windows.Data.BindingMode.TwoWay,
+                    UpdateSourceTrigger = System.Windows.Data.UpdateSourceTrigger.PropertyChanged
+                };
+                DescriptionTextBox.SetBinding(TextBox.TextProperty, descriptionBinding);
+
+                var quotaBinding = new System.Windows.Data.Binding("NewDestination.Quota")
+                {
+                    Mode = System.Windows.Data.BindingMode.TwoWay,
+                    UpdateSourceTrigger = System.Windows.Data.UpdateSourceTrigger.PropertyChanged
+                };
+                QuotaTextBox.SetBinding(TextBox.TextProperty, quotaBinding);
+
+                // GANTI: Category binding untuk ComboBox
+                // Bind SelectedValue ke NewDestination.Category
+                var categoryBinding = new System.Windows.Data.Binding("NewDestination.Category")
+                {
+                    Mode = System.Windows.Data.BindingMode.TwoWay,
+                    UpdateSourceTrigger = System.Windows.Data.UpdateSourceTrigger.PropertyChanged
+                };
+                CategoryComboBox.SetBinding(ComboBox.SelectedValueProperty, categoryBinding);
+                CategoryComboBox.SelectedValuePath = "Tag";
+
+                var offerBinding = new System.Windows.Data.Binding("NewDestination.OfferText")
+                {
+                    Mode = System.Windows.Data.BindingMode.TwoWay,
+                    UpdateSourceTrigger = System.Windows.Data.UpdateSourceTrigger.PropertyChanged
+                };
+                OfferTextBox.SetBinding(TextBox.TextProperty, offerBinding);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error wiring up bindings: {ex.Message}");
+            }
         }
 
         /// <summary>
