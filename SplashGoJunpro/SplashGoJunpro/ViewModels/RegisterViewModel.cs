@@ -308,6 +308,7 @@ namespace SplashGoJunpro.ViewModels
                 string email = userInfo.Email;
                 string googleId = userInfo.Id;
                 string name = userInfo.Name;
+                var userId = 0;
 
                 // Check if user exists in database
                 string sqlCheck = "SELECT * FROM users WHERE email = @Email AND google_id = @GoogleId";
@@ -327,7 +328,18 @@ namespace SplashGoJunpro.ViewModels
                         { "@GoogleId", googleId },
                         { "@Name", name }
                     });
+
+                    string sql = "SELECT * FROM users WHERE email = @Email AND google_id = @GoogleId";
+                    var result = await _db.QueryAsync(sql, new Dictionary<string, object>
+                    {
+                        { "@Email", email },
+                        { "@GoogleId", googleId },
+                    });
+
+                    userId = Convert.ToInt32(result[0]["userid"]);
                 }
+
+                userId = Convert.ToInt32(user[0]["userid"]);
 
                 // Generate token for Google login
                 string token = Guid.NewGuid().ToString();
@@ -344,6 +356,7 @@ namespace SplashGoJunpro.ViewModels
                 // Save login session
                 SessionManager.IsLoggedIn = true;
                 SessionManager.CurrentUserEmail = email;
+                SessionManager.CurrentUserId = userId;
                 SessionManager.LoginToken = token;
 
                 MessageBox.Show($"Welcome {name}! (Google Login successful)", "Success", MessageBoxButton.OK, MessageBoxImage.Information);

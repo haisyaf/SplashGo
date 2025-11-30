@@ -173,7 +173,7 @@ namespace SplashGoJunpro.ViewModels
 
             try
             {
-                string sql = "SELECT password FROM users WHERE email = @Email LIMIT 1";
+                string sql = "SELECT userid, password FROM users WHERE email = @Email LIMIT 1";
 
                 var result = await _db.QueryAsync(sql, new Dictionary<string, object>
                 {
@@ -186,8 +186,9 @@ namespace SplashGoJunpro.ViewModels
                     return;
                 }
 
-                // Get stored hashed password
+                // Get stored hashed password and user_id
                 var storedHash = result[0]["password"].ToString();
+                var userId = Convert.ToInt32(result[0]["userid"]);
 
                 // Compare hash with input password
                 if (BCrypt.Net.BCrypt.Verify(password, storedHash))
@@ -222,13 +223,14 @@ namespace SplashGoJunpro.ViewModels
                     // Save login session
                     SessionManager.IsLoggedIn = true;
                     SessionManager.CurrentUserEmail = email;
+                    SessionManager.CurrentUserId = userId;
                     SessionManager.LoginToken = token;
                     Properties.Settings.Default.Save();
 
                     MessageBox.Show("Login successful!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                     LoginSuccess?.Invoke(this, EventArgs.Empty);
                     Debug.WriteLine("Navigating to MainWindow");
-                    NavigateToMain?.Invoke(this, EventArgs.Empty); // Changed
+                    NavigateToMain?.Invoke(this, EventArgs.Empty);
                 }
                 else
                 {
@@ -304,6 +306,9 @@ namespace SplashGoJunpro.ViewModels
                     });
                 }
 
+                var userId = Convert.ToInt32(user[0]["userid"]);
+
+
                 // Generate token for Google login
                 string token = Guid.NewGuid().ToString();
 
@@ -319,6 +324,7 @@ namespace SplashGoJunpro.ViewModels
                 // Save login session
                 SessionManager.IsLoggedIn = true;
                 SessionManager.CurrentUserEmail = email;
+                SessionManager.CurrentUserId = userId;
                 SessionManager.LoginToken = token;
 
                 MessageBox.Show($"Welcome {name}! (Google Login successful)", "Success", MessageBoxButton.OK);
