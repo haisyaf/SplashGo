@@ -11,6 +11,7 @@ namespace SplashGoJunpro.Models
     public class Destination : INotifyPropertyChanged
     {
         private int _destinationId;
+        private int _destinationQuota;
         private string _name;
         private string _location;
         private string _description;
@@ -31,6 +32,16 @@ namespace SplashGoJunpro.Models
             set
             {
                 _destinationId = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int DestinationQuota
+        {
+            get => _destinationQuota;
+            set
+            {
+                _destinationQuota = value;
                 OnPropertyChanged();
             }
         }

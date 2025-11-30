@@ -1,28 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace SplashGoJunpro.Models
 {
-    public class Tourist : User
+    public class Tourist
     {
-        public string PassportNumber { get; set; }
+        public int Id { get; set; }
+        public string FullName { get; set; }
+        public string IDNumber { get; set; }  // Passport or National ID
+        public string PhoneNumber { get; set; }
+
         private List<Booking> Bookings { get; set; } = new List<Booking>();
 
-        public Booking MakeBooking(Destination d)
+        public Booking MakeBooking(Destination destination)
         {
-            var booking = new Booking(d); // now uses constructor
+            var booking = new Booking(destination);
             Bookings.Add(booking);
             return booking;
         }
 
-        public bool CancelBooking(Booking b)
+        public bool CancelBooking(Booking booking)
         {
-            if (Bookings.Contains(b))
+            if (Bookings.Contains(booking))
             {
-                b.Cancel();
+                booking.Cancel();
                 return true;
             }
             return false;

@@ -9,9 +9,11 @@ namespace SplashGoJunpro.Models
     public class Booking
     {
         public int BookingId { get; set; }
-        public DateTime Date { get; set; } = DateTime.Now;
+        public DateTime BookingDate { get; set; } = DateTime.Now;
         public string Status { get; private set; }
         public Destination Destination { get; set; }
+
+        public int Pax { get; set; }
 
         // Constructor to set initial status
         public Booking(Destination destination)

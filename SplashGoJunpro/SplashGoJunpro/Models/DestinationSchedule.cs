@@ -15,6 +15,11 @@ namespace SplashGoJunpro.Models
         private TimeSpan? _closeTime;
         private int _destinationId;
 
+        public DateTime Date { get; set; }
+        public string DateString { get; set; }
+        public bool IsAvailable { get; set; }
+        public int RemainingQuota { get; set; }
+
         public int DayOfWeek
         {
             get => _dayOfWeek;
