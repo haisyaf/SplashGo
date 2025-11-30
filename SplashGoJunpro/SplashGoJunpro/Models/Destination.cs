@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace SplashGoJunpro.Models
@@ -16,9 +19,11 @@ namespace SplashGoJunpro.Models
         private string _imagePath;
         private string _owner;
         private List<string> _offer;
-        private int? _dayOfWeek;
-        private TimeSpan? _openTime;
-        private TimeSpan? _closeTime;
+        //private int? _dayOfWeek;
+        //private TimeSpan? _openTime;
+        //private TimeSpan? _closeTime;
+        private ObservableCollection<DestinationSchedule> _schedule;
+
 
         public int DestinationId
         {
@@ -115,58 +120,82 @@ namespace SplashGoJunpro.Models
             set { _offer = value; OnPropertyChanged(); }
         }
 
-        public int? DayOfWeek
-        {
-            get => _dayOfWeek;
-            set { _dayOfWeek = value; OnPropertyChanged(); }
-        }
+        //public int? DayOfWeek
+        //{
+        //    get => _dayOfWeek;
+        //    set { _dayOfWeek = value; OnPropertyChanged(); }
+        //}
 
-        public TimeSpan? OpenTime
-        {
-            get => _openTime;
-            set { _openTime = value; OnPropertyChanged(); }
-        }
+        //public TimeSpan? OpenTime
+        //{
+        //    get => _openTime;
+        //    set { _openTime = value; OnPropertyChanged(); }
+        //}
 
-        public TimeSpan? CloseTime
-        {
-            get => _closeTime;
-            set { _closeTime = value; OnPropertyChanged(); }
-        }
+        //public TimeSpan? CloseTime
+        //{
+        //    get => _closeTime;
+        //    set { _closeTime = value; OnPropertyChanged(); }
+        //}
 
-        public string ScheduleDisplay
+        //public List<DestinationSchedule> Schedule
+        //{
+        //    get => _schedule;
+        //    set { _schedule = value; OnPropertyChanged(); }
+        //}
+
+        //private ObservableCollection<DestinationSchedule> _schedule
+        //    = new ObservableCollection<DestinationSchedule>();
+
+        public ObservableCollection<DestinationSchedule> Schedule
         {
-            get
+            get => _schedule;
+            set
             {
-                if (DayOfWeek == null)
-                    return "N/A";
-
-                string dayName = DayOfWeekToName(DayOfWeek.Value);
-
-                if (OpenTime == null || CloseTime == null)
-                    return $"{dayName} · Closed";
-
-                return $"{dayName} · {OpenTime:hh\\:mm}–{CloseTime:hh\\:mm}";
+                _schedule = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(TodayScheduleDisplay)); // dependent
+                OnPropertyChanged(nameof(ScheduleRotated));     // dependent
             }
         }
 
-        public string ScheduleTimeDisplay
+        public string TodayScheduleDisplay
         {
             get
             {
-                if (OpenTime == null || CloseTime == null)
-                    return $"Closed";
+                if (Schedule == null || Schedule.Count == 0)
+                    return "No schedule data";
 
-                return $"{OpenTime:hh\\:mm}–{CloseTime:hh\\:mm}";
+                foreach (var s in Schedule)
+                {
+                    Debug.WriteLine($"DB Schedule Day: {s.DayOfWeek}");
+                }
+
+                // Output all DayOfWeek values in Schedule
+                var allDays = string.Join(", ", Schedule.Select(s => DestinationSchedule.DayOfWeekToName(s.DayOfWeek)));
+                Debug.WriteLine($"All schedule days: {allDays}");
+
+                int today = (int)DateTime.Now.DayOfWeek;
+                var todaySch = Schedule.FirstOrDefault(x => x.DayOfWeek == today);
+                
+                return todaySch?.Display ?? "Closed today";
             }
         }
 
-        // helper that maps 0..6 -> Sunday..Saturday (adjust if your DB uses different mapping)
-        private static string DayOfWeekToName(int dow)
+
+        public List<DestinationSchedule> ScheduleRotated
         {
-            // ensure valid range
-            string[] names = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
-            if (dow < 0 || dow > 6) return "Unknown";
-            return names[dow];
+            get
+            {
+                if (Schedule == null || Schedule.Count == 0)
+                    return new List<DestinationSchedule>();
+
+                int today = (int)DateTime.Now.DayOfWeek; // 0 = Sunday, 1 = Monday, ...
+
+                return Schedule
+                    .OrderBy(s => (s.DayOfWeek - today + 7) % 7)
+                    .ToList();
+            }
         }
 
         // INotifyPropertyChanged implementation
