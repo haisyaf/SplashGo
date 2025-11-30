@@ -71,6 +71,7 @@ namespace SplashGoJunpro.ViewModels
                 string sql = @"
                     SELECT 
                         d.destinationid,
+                        d.quota,
                         d.name,
                         d.location,
                         d.description,
@@ -104,6 +105,7 @@ namespace SplashGoJunpro.ViewModels
                     CurrentDestination = new Destination
                     {
                         DestinationId = Convert.ToInt32(first["destinationid"]),
+                        DestinationQuota = Convert.ToInt32(first["quota"]),
                         Name = first["name"].ToString(),
                         Location = first["location"].ToString(),
                         Description = first["description"].ToString(),

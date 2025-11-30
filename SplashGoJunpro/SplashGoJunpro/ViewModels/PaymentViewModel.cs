@@ -1,6 +1,7 @@
 ﻿using SplashGoJunpro.Data;
 using SplashGoJunpro.Models;
 using SplashGoJunpro.Services;
+using SplashGoJunpro.Views;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -9,6 +10,8 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Navigation;
 
 namespace SplashGoJunpro.ViewModels
 {
@@ -23,7 +26,7 @@ namespace SplashGoJunpro.ViewModels
         public PaymentViewModel(Destination destination)
         {
             _destination = destination;
-            _paxCount = 2; // Default PAX count
+            _paxCount = 1; // Default PAX count
             _availableDates = new ObservableCollection<AvailableDate>();
 
             CalculateTotalPrice();
@@ -67,7 +70,14 @@ namespace SplashGoJunpro.ViewModels
             get => _paxCount;
             set
             {
-                if (value >= 1 && value <= 10) // Limit PAX count
+                // Determine max PAX: minimum of remaining quota
+                int maxPax = 10;
+                if (SelectedDate != null)
+                {
+                    maxPax = SelectedDate.RemainingQuota;
+                }
+
+                if (value >= 1 && value <= maxPax)
                 {
                     _paxCount = value;
                     OnPropertyChanged();
@@ -116,6 +126,7 @@ namespace SplashGoJunpro.ViewModels
         {
             try
             {
+
                 // TODO: Query dari database untuk mengambil available dates
                 // var db = new NeonDb();
                 // string sql = "SELECT * FROM available_dates WHERE destination_id = @DestinationId";
@@ -124,17 +135,100 @@ namespace SplashGoJunpro.ViewModels
                 // For now, generate dummy dates
                 var dates = new ObservableCollection<AvailableDate>();
                 var today = DateTime.Today;
+                //var schedules = Destination.Schedule;
+                var db = new NeonDb();
 
-                for (int i = 0; i < 6; i++)
+                for (int i = 0; i < 6; i++) // next 14 days
                 {
                     var date = today.AddDays(i);
+                    int dow = (int)date.DayOfWeek;
+
+                    // 1. GET SCHEDULE (open/close)
+                    string scheduleSql = @"
+                        SELECT * FROM destination_schedules
+                        WHERE destination_id=@DestId AND day_of_week=@Dow
+                    ";
+
+                    var scheduleRows = await db.QueryAsync(
+                        scheduleSql,
+                        new Dictionary<string, object> { { "@DestId", _destination.DestinationId }, { "@Dow", dow } }
+                    );
+
+                    // If you need to map the result to DestinationSchedule, you must do it manually:
+                    var schedule = scheduleRows
+                        .Select(row => new DestinationSchedule
+                        {
+                            DestinationId = Convert.ToInt32(row["destination_id"]),
+                            DayOfWeek = Convert.ToInt32(row["day_of_week"]),
+                            OpenTime = row["open_time"] as TimeSpan?,
+                            CloseTime = row["close_time"] as TimeSpan?
+                        })
+                        .FirstOrDefault();
+
+                    bool isOpen = schedule != null &&
+                                  schedule.OpenTime.HasValue &&
+                                  schedule.CloseTime.HasValue;
+
+                    // 2. GET TOTAL BOOKED FOR THAT DATE
+                    string bookedSql = @"
+                        SELECT COALESCE(SUM(pax_count), 0) AS total_booked
+                        FROM bookings
+                        WHERE destinationid=@DestId AND date=@Date
+                    ";
+
+                    var bookedRows = await db.QueryAsync(
+                        bookedSql,
+                        new Dictionary<string, object> { { "@DestId", _destination.DestinationId }, { "@Date", date.Date } }
+                    );
+
+                    int totalBooked = 0;
+                    if (bookedRows.Count > 0 && bookedRows[0].ContainsKey("total_booked"))
+                    {
+                        totalBooked = Convert.ToInt32(bookedRows[0]["total_booked"]);
+                    }
+
+                    int remaining = _destination.DestinationQuota - totalBooked;
+
+                    // 3. DETERMINE UI STATE
+                    bool isEnabled = true;
+                    string status;
+
+                    if (!isOpen)
+                    {
+                        status = "Closed";
+                        isEnabled = false;
+                    }
+                    else if (remaining <= 0)
+                    {
+                        status = "Full";
+                        isEnabled = false;
+                    }
+                    else
+                    {
+                        status = $"Available ({remaining} left)";
+                    }
+
+                    // 4. ADD TO LIST
                     dates.Add(new AvailableDate
                     {
                         Date = date,
-                        DateString = $"{date.Day} {date:MMM}",
-                        IsAvailable = true
+                        DateString = date.ToString("dd MMM"),
+                        RemainingQuota = remaining,
+                        Status = status,
+                        IsAvailable = isEnabled
                     });
                 }
+
+                //for (int i = 0; i < 6; i++)
+                //{
+                //    var date = today.AddDays(i);
+                //    dates.Add(new AvailableDate
+                //    {
+                //        Date = date,
+                //        DateString = $"{date.Day} {date:MMM}",
+                //        IsAvailable = true
+                //    });
+                //}
 
                 AvailableDates = dates;
             }
@@ -168,7 +262,13 @@ namespace SplashGoJunpro.ViewModels
         /// </summary>
         public void IncreasePax()
         {
-            if (PaxCount < 10)
+            int maxPax = 0;
+            if (SelectedDate != null)
+            {
+                maxPax = SelectedDate.RemainingQuota;
+            }
+
+            if (PaxCount < maxPax)
             {
                 PaxCount++;
             }
@@ -199,7 +299,7 @@ namespace SplashGoJunpro.ViewModels
         /// <summary>
         /// Process payment
         /// </summary>
-        public async void ProcessPayment(PaymentData paymentData)
+        public async void ProcessPayment(PaymentData paymentData, NavigationService navService)
         {
             try
             {
@@ -215,41 +315,123 @@ namespace SplashGoJunpro.ViewModels
                     return;
                 }
 
-                // TODO: Save booking to database
-                // var db = new NeonDb();
-                // string sql = @"
-                //     INSERT INTO bookings (user_id, destination_id, full_name, id_number, mobile_number, 
-                //                          booking_date, pax_count, total_amount, created_at)
-                //     VALUES (@UserId, @DestinationId, @FullName, @IdNumber, @MobileNumber, 
-                //            @BookingDate, @PaxCount, @TotalAmount, @CreatedAt)
-                // ";
-                // var parameters = new Dictionary<string, object>
-                // {
-                //     { "@UserId", SessionManager.CurrentUser.UserId },
-                //     { "@DestinationId", _destination.DestinationId },
-                //     { "@FullName", paymentData.FullName },
-                //     { "@IdNumber", paymentData.IdNumber },
-                //     { "@MobileNumber", paymentData.MobileNumber },
-                //     { "@BookingDate", paymentData.SelectedDate.Date },
-                //     { "@PaxCount", paymentData.PaxCount },
-                //     { "@TotalAmount", paymentData.TotalAmount },
-                //     { "@CreatedAt", DateTime.Now }
-                // };
-                // await db.ExecuteAsync(sql, parameters);
+                // Validate payment data
+                if (paymentData?.SelectedDate == null || paymentData.PaxCount <= 0)
+                {
+                    MessageBox.Show(
+                        "Please select a date and ensure PAX count is valid.",
+                        "Invalid Data",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning
+                    );
+                    return;
+                }
 
-                MessageBox.Show(
-                    $"Payment successful!\n\nBooking Details:\n" +
-                    $"Destination: {_destination.Name}\n" +
-                    $"Date: {paymentData.SelectedDate.Date:dd MMMM yyyy}\n" +
-                    $"PAX: {paymentData.PaxCount}\n" +
-                    $"Total: Rp {paymentData.TotalAmount:N0}\n\n" +
-                    $"Thank you for your booking!",
-                    "Payment Success",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information
-                );
+                // CREATE BOOKING RECORD IN DATABASE
+                var db = new NeonDb();
+                string insertBookingSql = @"
+                    INSERT INTO bookings (userid, destinationid, created_at, amount, totalprice, status, booking_date)
+                    VALUES (@UserId, @DestinationId, @CreatedAt, @PaxCount, @TotalAmount, @Status, @BookingDate)
+                    RETURNING bookingid;
+                ";
 
-                // TODO: Navigate to booking confirmation page or dashboard
+                var bookingParameters = new Dictionary<string, object>
+                {
+                    { "@UserId", SessionManager.CurrentUserId },
+                    { "@DestinationId", _destination.DestinationId },
+                    { "@BookingDate", paymentData.SelectedDate.Date },
+                    { "@PaxCount", paymentData.PaxCount },
+                    { "@TotalAmount", paymentData.TotalAmount },
+                    { "@Status", "pending" },
+                    { "@CreatedAt", DateTime.Now }
+                };
+
+                var bookingResult = await db.QueryAsync(insertBookingSql, bookingParameters);
+                if (bookingResult.Count == 0)
+                {
+                    throw new Exception("Failed to create booking record.");
+                }
+
+                int bookingId = Convert.ToInt32(bookingResult[0]["bookingid"]);
+
+                string insertVisitorSql = @"
+                    INSERT INTO visitors (booking_id, full_name, id_number, mobile_number)
+                    VALUES (@BookingId, @FullName, @IdNumber, @MobileNumber);
+                ";  
+
+                var visitorParameters = new Dictionary<string, object>
+                {
+                    { "@BookingId", bookingId},
+                    { "@FullName", paymentData.FullName },
+                    { "@IdNumber", paymentData.IdNumber },
+                    { "@MobileNumber", paymentData.MobileNumber }
+                };
+
+                var rowsAffected = await db.ExecuteAsync(insertVisitorSql, visitorParameters);
+                if (rowsAffected == 0)
+                {
+                    throw new Exception("Failed to create lead visitor record.");
+                }
+
+
+                // PREPARE MIDTRANS PAYMENT REQUEST
+                var midtransService = new MidtransService();
+                var transactionRequest = new MidtransTransactionRequest
+                {
+                    transaction_details = new TransactionDetails
+                    {
+                        order_id = $"BOOKING-{bookingId}-{DateTime.Now.Ticks}",
+                        gross_amount = (long)paymentData.TotalAmount
+                    },
+                    customer_details = new CustomerDetails
+                    {
+                        first_name = paymentData.FullName,
+                        phone = paymentData.MobileNumber,
+                        id_number = paymentData.IdNumber,
+                        email = SessionManager.CurrentUserEmail ?? "customer@splashgo.com"
+                    },
+                    item_details = new List<ItemDetail>
+                    {
+                        new ItemDetail
+                        {
+                            id = _destination.DestinationId.ToString(),
+                            name = _destination.Name,
+                            quantity = paymentData.PaxCount,
+                            price = (long)_destination.Price
+                        }
+                    }
+                };
+
+                // GET SNAP TOKEN FROM MIDTRANS
+                string snapToken = await midtransService.GetSnapTokenAsync(transactionRequest);
+
+                if (string.IsNullOrEmpty(snapToken))
+                {
+                    throw new Exception("Failed to generate payment token from Midtrans.");
+                }
+
+                // SAVE SNAP TOKEN TO BOOKING RECORD
+                string updateTokenSql = "UPDATE bookings SET snap_token = @SnapToken WHERE bookingid = @BookingId";
+                await db.ExecuteAsync(updateTokenSql, new Dictionary<string, object>
+                {
+                    { "@SnapToken", snapToken },
+                    { "@BookingId", bookingId }
+                });
+
+                // OPEN MIDTRANS PAYMENT PAGE IN DEFAULT BROWSER
+                string snapUrl = $"https://app.sandbox.midtrans.com/snap/v2/vtweb/{snapToken}";
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = snapUrl,
+                    UseShellExecute = true
+                });
+
+                //  NAVIGATE TO TRANSACTION HISTORY PAGE
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    navService?.Navigate(new TransactionHistoryPage());
+                });
+
             }
             catch (Exception ex)
             {
@@ -284,10 +466,22 @@ namespace SplashGoJunpro.ViewModels
     public class AvailableDate : INotifyPropertyChanged
     {
         private bool _isSelected;
+        private int _remainingQuota;
+        private string _status;
 
         public DateTime Date { get; set; }
         public string DateString { get; set; }
         public bool IsAvailable { get; set; }
+
+        public int RemainingQuota
+        {
+            get => _remainingQuota;
+            set
+            {
+                _remainingQuota = value;
+                OnPropertyChanged();
+            }
+        }
 
         public bool IsSelected
         {
@@ -295,6 +489,16 @@ namespace SplashGoJunpro.ViewModels
             set
             {
                 _isSelected = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string Status
+        {
+            get => _status;
+            set
+            {
+                _status = value;
                 OnPropertyChanged();
             }
         }
