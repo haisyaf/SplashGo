@@ -354,6 +354,16 @@ namespace SplashGoJunpro.ViewModels
 
                 int bookingId = Convert.ToInt32(bookingResult[0]["bookingid"]);
 
+                string orderCode = $"BOOKING-{bookingId}-{DateTime.Now.Ticks}";
+
+                string updateOrderSql = "UPDATE bookings SET order_code = @OrderCode WHERE bookingid = @BookingId";
+                await db.ExecuteAsync(updateOrderSql, new Dictionary<string, object>
+                {
+                    { "@OrderCode", orderCode },
+                    { "@BookingId", bookingId }
+                });
+
+
                 string insertVisitorSql = @"
                     INSERT INTO visitors (booking_id, full_name, id_number, mobile_number)
                     VALUES (@BookingId, @FullName, @IdNumber, @MobileNumber);
