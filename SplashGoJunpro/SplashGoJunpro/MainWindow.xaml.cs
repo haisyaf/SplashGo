@@ -80,7 +80,7 @@ namespace SplashGoJunpro
         /// </summary>
         private void Profile_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Profile page is under construction.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+            MainFrame.Navigate(new UserProfilePage());
         }
 
         /// <summary>
