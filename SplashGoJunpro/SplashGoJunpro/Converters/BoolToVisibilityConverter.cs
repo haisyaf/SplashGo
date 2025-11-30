@@ -53,4 +53,28 @@ namespace SplashGoJunpro.Converters
             return true;
         }
     }
+
+        /// <summary>
+    /// Converter untuk mengubah beberapa Boolean ke Visibility.
+    /// Semua true = Visible, salah satu false = Collapsed.
+    /// </summary>
+    public class MultiBoolToVisibilityConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            foreach (var value in values)
+            {
+                if (!(value is bool boolValue) || !boolValue)
+                {
+                    return Visibility.Collapsed;
+                }
+            }
+            return Visibility.Visible;
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException("MultiBoolToVisibilityConverter does not support ConvertBack.");
+        }
+    }
 }

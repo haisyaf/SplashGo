@@ -64,7 +64,7 @@ namespace SplashGoJunpro
         /// </summary>
         private void Saved_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Saved page is under construction.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+            MainFrame.Navigate(new BookmarkPage());
         }
 
         /// <summary>

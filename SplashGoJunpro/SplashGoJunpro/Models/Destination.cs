@@ -20,11 +20,9 @@ namespace SplashGoJunpro.Models
         private string _imagePath;
         private string _owner;
         private List<string> _offer;
-        //private int? _dayOfWeek;
-        //private TimeSpan? _openTime;
-        //private TimeSpan? _closeTime;
         private ObservableCollection<DestinationSchedule> _schedule;
-
+        private bool _isBookmarked;
+        private int _bookmarkId;
 
         public int DestinationId
         {
@@ -124,39 +122,11 @@ namespace SplashGoJunpro.Models
             set { _owner = value; OnPropertyChanged(); }
         }
 
-
         public List<string> Offer
         {
             get => _offer;
             set { _offer = value; OnPropertyChanged(); }
         }
-
-        //public int? DayOfWeek
-        //{
-        //    get => _dayOfWeek;
-        //    set { _dayOfWeek = value; OnPropertyChanged(); }
-        //}
-
-        //public TimeSpan? OpenTime
-        //{
-        //    get => _openTime;
-        //    set { _openTime = value; OnPropertyChanged(); }
-        //}
-
-        //public TimeSpan? CloseTime
-        //{
-        //    get => _closeTime;
-        //    set { _closeTime = value; OnPropertyChanged(); }
-        //}
-
-        //public List<DestinationSchedule> Schedule
-        //{
-        //    get => _schedule;
-        //    set { _schedule = value; OnPropertyChanged(); }
-        //}
-
-        //private ObservableCollection<DestinationSchedule> _schedule
-        //    = new ObservableCollection<DestinationSchedule>();
 
         public ObservableCollection<DestinationSchedule> Schedule
         {
@@ -165,8 +135,8 @@ namespace SplashGoJunpro.Models
             {
                 _schedule = value;
                 OnPropertyChanged();
-                OnPropertyChanged(nameof(TodayScheduleDisplay)); // dependent
-                OnPropertyChanged(nameof(ScheduleRotated));     // dependent
+                OnPropertyChanged(nameof(TodayScheduleDisplay));
+                OnPropertyChanged(nameof(ScheduleRotated));
             }
         }
 
@@ -182,17 +152,15 @@ namespace SplashGoJunpro.Models
                     Debug.WriteLine($"DB Schedule Day: {s.DayOfWeek}");
                 }
 
-                // Output all DayOfWeek values in Schedule
                 var allDays = string.Join(", ", Schedule.Select(s => DestinationSchedule.DayOfWeekToName(s.DayOfWeek)));
                 Debug.WriteLine($"All schedule days: {allDays}");
 
                 int today = (int)DateTime.Now.DayOfWeek;
                 var todaySch = Schedule.FirstOrDefault(x => x.DayOfWeek == today);
-                
+
                 return todaySch?.Display ?? "Closed today";
             }
         }
-
 
         public List<DestinationSchedule> ScheduleRotated
         {
@@ -201,11 +169,32 @@ namespace SplashGoJunpro.Models
                 if (Schedule == null || Schedule.Count == 0)
                     return new List<DestinationSchedule>();
 
-                int today = (int)DateTime.Now.DayOfWeek; // 0 = Sunday, 1 = Monday, ...
+                int today = (int)DateTime.Now.DayOfWeek;
 
                 return Schedule
                     .OrderBy(s => (s.DayOfWeek - today + 7) % 7)
                     .ToList();
+            }
+        }
+
+        // Properties untuk Bookmark
+        public bool IsBookmarked
+        {
+            get => _isBookmarked;
+            set
+            {
+                _isBookmarked = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int BookmarkId
+        {
+            get => _bookmarkId;
+            set
+            {
+                _bookmarkId = value;
+                OnPropertyChanged();
             }
         }
 

@@ -1,0 +1,199 @@
+﻿<Page x:Class="SplashGoJunpro.Views.BookmarkPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:vm="clr-namespace:SplashGoJunpro.ViewModels"
+      xmlns:local="clr-namespace:SplashGoJunpro.Converters"
+      mc:Ignorable="d"
+      d:DesignHeight="1080" d:DesignWidth="1820"
+      Title="BookmarkPage">
+
+    <Page.Resources>
+        <!-- Add the missing BoolToVisibilityConverter -->
+        <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <local:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter"/>
+        <local:MultiBoolToVisibilityConverter x:Key="MultiBoolToVisibilityConverter"/>
+
+        <!-- Color Resources -->
+        <SolidColorBrush x:Key="PrimaryBlue" Color="#0066CC"/>
+        <SolidColorBrush x:Key="LightGray" Color="#F5F5F5"/>
+        <SolidColorBrush x:Key="TextGray" Color="#666666"/>
+        <SolidColorBrush x:Key="PriceRed" Color="#E74C3C"/>
+
+        <!-- Hotel Card Style (sama seperti Dashboard) -->
+        <Style x:Key="HotelCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Margin" Value="10"/>
+            <Setter Property="Width" Value="536"/>
+            <Setter Property="Height" Value="516"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="Gray" Opacity="0.3" BlurRadius="10" ShadowDepth="2"/>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Effect">
+                        <Setter.Value>
+                            <DropShadowEffect Color="Gray" Opacity="0.5" BlurRadius="15" ShadowDepth="3"/>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Empty State Style -->
+        <Style x:Key="EmptyStateTextStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="28"/>
+            <Setter Property="FontFamily" Value="Inter"/>
+            <Setter Property="Foreground" Value="{StaticResource TextGray}"/>
+            <Setter Property="TextAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+        </Style>
+    </Page.Resources>
+
+    <Grid Background="{StaticResource LightGray}">
+        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+            <StackPanel>
+                <!-- Header Section -->
+                <Grid Background="White" Height="120">
+                    <Grid.Effect>
+                        <DropShadowEffect Color="Gray" Opacity="0.1" BlurRadius="10" ShadowDepth="2"/>
+                    </Grid.Effect>
+
+                    <StackPanel VerticalAlignment="Center" Margin="50,0">
+                        <TextBlock Text="My Bookmarks" 
+                                   FontSize="48" 
+                                   FontWeight="Bold" 
+                                   Foreground="#333333"
+                                   FontFamily="Inter"/>
+                        <TextBlock Text="Your saved destinations" 
+                                   FontSize="20" 
+                                   Foreground="{StaticResource TextGray}"
+                                   FontFamily="Inter"
+                                   FontWeight="Light"
+                                   Margin="0,5,0,0"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Loading Indicator -->
+                <Grid Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"
+                      Height="500">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <TextBlock Text="Loading bookmarks..." 
+                                   Style="{StaticResource EmptyStateTextStyle}"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Empty State -->
+                <Grid Height="500">
+                    <Grid.Visibility>
+                        <MultiBinding Converter="{StaticResource MultiBoolToVisibilityConverter}">
+                            <Binding Path="IsLoading" Converter="{StaticResource InverseBoolToVisibilityConverter}"/>
+                            <Binding Path="HasBookmarks" Converter="{StaticResource InverseBoolToVisibilityConverter}"/>
+                        </MultiBinding>
+                    </Grid.Visibility>
+
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <Path Data="M17,3H7A2,2 0 0,0 5,5V21L12,18L19,21V5C19,3.89 18.1,3 17,3Z" 
+                              Fill="{StaticResource TextGray}"
+                              Width="80" 
+                              Height="80" 
+                              Stretch="Uniform"
+                              HorizontalAlignment="Center"
+                              Opacity="0.3"
+                              Margin="0,0,0,30"/>
+                        <TextBlock Text="No bookmarks yet" 
+                                   Style="{StaticResource EmptyStateTextStyle}"
+                                   FontSize="32"
+                                   FontWeight="SemiBold"
+                                   Margin="0,0,0,10"/>
+                        <TextBlock Text="Start exploring and save your favorite destinations!" 
+                                   Style="{StaticResource EmptyStateTextStyle}"
+                                   FontSize="20"
+                                   FontWeight="Light"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Bookmarked Destinations Grid -->
+                <StackPanel Margin="30,30,30,50"
+                            Visibility="{Binding HasBookmarks, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <ItemsControl ItemsSource="{Binding BookmarkedDestinations}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Columns="3"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Style="{StaticResource HotelCardStyle}"
+                                        MouseLeftButtonDown="BookmarkCard_Click"
+                                        Tag="{Binding}">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="315"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+
+                                        <Border Grid.Row="0" CornerRadius="10,10,0,0" Height="315" Width="536">
+                                            <Border.Background>
+                                                <ImageBrush ImageSource="{Binding ImagePath}" Stretch="UniformToFill"/>
+                                            </Border.Background>
+
+                                            <!-- Remove Bookmark Button (filled bookmark icon) -->
+                                            <Button HorizontalAlignment="Right" 
+                                                    VerticalAlignment="Top"
+                                                    Margin="10"
+                                                    Background="White"
+                                                    BorderThickness="0"
+                                                    Width="35"
+                                                    Height="35"
+                                                    Cursor="Hand"
+                                                    Command="{Binding DataContext.RemoveBookmarkCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                    CommandParameter="{Binding}"
+                                                    ToolTip="Remove from bookmarks">
+                                                <Path Data="M17,3H7A2,2 0 0,0 5,5V21L12,18L19,21V5C19,3.89 18.1,3 17,3Z" 
+                                                      Fill="{StaticResource PrimaryBlue}"
+                                                      Width="18" 
+                                                      Height="18" 
+                                                      Stretch="Uniform"/>
+                                            </Button>
+                                        </Border>
+
+                                        <StackPanel Grid.Row="1" Margin="24,27,0,0">
+                                            <TextBlock Text="{Binding Name}" 
+                                                       FontSize="32" 
+                                                       FontWeight="Bold"
+                                                       FontFamily="Inter"
+                                                       Margin="0,0,0,10"/>
+                                            <DockPanel>
+                                                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" Width="330">
+                                                    <Image Source="/Images/location_on.png" Width="28" Height="28" Margin="0,0,5,0"/>
+                                                    <TextBlock Text="{Binding Location}" 
+                                                               Foreground="{StaticResource TextGray}"
+                                                               FontSize="28"
+                                                               FontFamily="Inter"
+                                                               FontWeight="Light"/>
+                                                </StackPanel>
+                                                <TextBlock Text="{Binding FormattedPrice}" 
+                                                           Foreground="{StaticResource PriceRed}"
+                                                           FontSize="28"
+                                                           FontWeight="SemiBold"
+                                                           FontFamily="Inter"
+                                                           DockPanel.Dock="Right"/>
+                                            </DockPanel>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

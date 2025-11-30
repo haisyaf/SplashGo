@@ -25,7 +25,7 @@ namespace SplashGoJunpro.ViewModels
         {
             // Initialize commands
             FindTicketCommand = new RelayCommand(FindTicket);
-            ToggleBookmarkCommand = new RelayCommand(ToggleBookmark);
+            ToggleBookmarkCommand = new RelayCommand(async (param) => await ToggleBookmark(param));
         }
 
         #region Properties
@@ -151,7 +151,11 @@ namespace SplashGoJunpro.ViewModels
                     OnPropertyChanged(nameof(CurrentDestination));
                     OnPropertyChanged(nameof(CurrentDestination.TodayScheduleDisplay));
 
-
+                    // Load bookmark status for current destination if user is logged in
+                    if (SessionManager.IsLoggedIn)
+                    {
+                        await LoadCurrentDestinationBookmarkStatus();
+                    }
 
                     // Load similar destinations (same category, different ID)
                     await LoadSimilarDestinations(CurrentDestination.Category, destinationId);
@@ -160,6 +164,75 @@ namespace SplashGoJunpro.ViewModels
             catch (Exception ex)
             {
                 MessageBox.Show($"Failed to load destination details: {ex.Message}");
+            }
+        }
+
+        private async Task LoadCurrentDestinationBookmarkStatus()
+        {
+            try
+            {
+                var db = new NeonDb();
+
+                string sql = @"
+                    SELECT COUNT(*) as count 
+                    FROM bookmarks 
+                    WHERE user_id = @userId AND destination_id = @destinationId;
+                ";
+
+                var parameters = new Dictionary<string, object>
+                {
+                    { "@userId", SessionManager.CurrentUserId },
+                    { "@destinationId", CurrentDestination.DestinationId }
+                };
+
+                var rows = await db.QueryAsync(sql, parameters);
+
+                if (rows.Count > 0)
+                {
+                    int count = Convert.ToInt32(rows[0]["count"]);
+                    CurrentDestination.IsBookmarked = count > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Silent fail - bookmark status will default to false
+                System.Diagnostics.Debug.WriteLine($"Failed to load bookmark status: {ex.Message}");
+            }
+        }
+
+        private async Task LoadSimilarBookmarkStatus()
+        {
+            try
+            {
+                var db = new NeonDb();
+
+                string sql = @"
+                    SELECT destination_id 
+                    FROM bookmarks 
+                    WHERE user_id = @userId;
+                ";
+
+                var parameters = new Dictionary<string, object>
+                {
+                    { "@userId", SessionManager.CurrentUserId }
+                };
+
+                var rows = await db.QueryAsync(sql, parameters);
+                var bookmarkedIds = rows.Select(r => Convert.ToInt32(r["destination_id"])).ToList();
+
+                // Update IsBookmarked status for all similar destinations
+                if (SimilarDestinations != null)
+                {
+                    foreach (var destination in SimilarDestinations)
+                    {
+                        destination.IsBookmarked = bookmarkedIds.Contains(destination.DestinationId);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Silent fail - bookmark status will default to false
+                System.Diagnostics.Debug.WriteLine($"Failed to load bookmark status: {ex.Message}");
             }
         }
 
@@ -231,6 +304,12 @@ namespace SplashGoJunpro.ViewModels
                 }
 
                 SimilarDestinations = list;
+
+                // Load bookmark status for similar destinations if user is logged in
+                if (SessionManager.IsLoggedIn)
+                {
+                    await LoadSimilarBookmarkStatus();
+                }
             }
             catch (Exception ex)
             {
@@ -256,7 +335,7 @@ namespace SplashGoJunpro.ViewModels
             NavigateToPayment?.Invoke(this, CurrentDestination);
         }
 
-        private void ToggleBookmark(object parameter)
+        private async Task ToggleBookmark(object parameter)
         {
             // Check if user is logged in
             if (!SessionManager.IsLoggedIn)
@@ -270,13 +349,71 @@ namespace SplashGoJunpro.ViewModels
                 return;
             }
 
-            // Feature not ready yet
-            MessageBox.Show(
-                "Bookmark feature is not available yet. Coming soon!",
-                "Coming Soon",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information
-            );
+            if (parameter is Destination destination)
+            {
+                try
+                {
+                    var db = new NeonDb();
+
+                    if (destination.IsBookmarked)
+                    {
+                        // Remove bookmark
+                        string deleteSql = @"
+                            DELETE FROM bookmarks 
+                            WHERE user_id = @userId AND destination_id = @destinationId;
+                        ";
+
+                        var deleteParams = new Dictionary<string, object>
+                        {
+                            { "@userId", SessionManager.CurrentUserId },
+                            { "@destinationId", destination.DestinationId }
+                        };
+
+                        await db.ExecuteAsync(deleteSql, deleteParams);
+                        destination.IsBookmarked = false;
+
+                        MessageBox.Show(
+                            "Bookmark removed successfully!",
+                            "Success",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information
+                        );
+                    }
+                    else
+                    {
+                        // Add bookmark
+                        string insertSql = @"
+                            INSERT INTO bookmarks (user_id, destination_id) 
+                            VALUES (@userId, @destinationId);
+                        ";
+
+                        var insertParams = new Dictionary<string, object>
+                        {
+                            { "@userId", SessionManager.CurrentUserId },
+                            { "@destinationId", destination.DestinationId }
+                        };
+
+                        await db.ExecuteAsync(insertSql, insertParams);
+                        destination.IsBookmarked = true;
+
+                        MessageBox.Show(
+                            "Bookmark added successfully!",
+                            "Success",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information
+                        );
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(
+                        $"Failed to update bookmark: {ex.Message}",
+                        "Error",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error
+                    );
+                }
+            }
         }
 
         #endregion

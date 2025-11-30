@@ -317,6 +317,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Commands\RelayCommand.cs" />
+    <Compile Include="Converters\BoolToBookmarkColorConverter.cs" />
     <Compile Include="Converters\BoolToVisibilityConverter.cs" />
     <Compile Include="Converters\PlaceholderVisibilityConverter.cs" />
     <Compile Include="Data\NeonDB.cs" />
@@ -324,6 +325,7 @@
     <Compile Include="Models\DestinationSchedule.cs" />
     <Compile Include="Services\MidtransService.cs" />
     <Compile Include="Services\SessionManager.cs" />
+    <Compile Include="ViewModels\BookmarkViewModel.cs" />
     <Compile Include="ViewModels\DashboardViewModel.cs" />
     <Compile Include="ViewModels\DestinationDetailViewModel.cs" />
     <Compile Include="ViewModels\LoginViewModel.cs" />
@@ -333,6 +335,9 @@
     <Compile Include="ViewModels\TransactionHistoryViewModel.cs" />
     <Compile Include="ViewModels\UserProfileViewModel.cs" />
     <Compile Include="ViewModels\ViewModelBase.cs" />
+    <Compile Include="Views\BookmarkPage.xaml.cs">
+      <DependentUpon>BookmarkPage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\DashboardPage.xaml.cs">
       <DependentUpon>DashboardPage.xaml</DependentUpon>
     </Compile>
@@ -369,6 +374,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Views\BookmarkPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\DashboardPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
