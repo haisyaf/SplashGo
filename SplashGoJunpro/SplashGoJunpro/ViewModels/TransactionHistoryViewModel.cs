@@ -199,8 +199,25 @@ namespace SplashGoJunpro.ViewModels
                         BookingDate = new DateTime(2025, 11, 15),
                         PaxCount = 4,
                         TotalAmount = 1500000,
-                        Status = "Paid",
+                        Status = "Pending",
                         CreatedAt = DateTime.Now.AddDays(-10)
+                    },
+                    new BookingTransaction
+                    {
+                        BookingId = 3,
+                        OrderCode = "64_74U_4P6",
+                        DestinationId = 3,
+                        DestinationName = "Candi Borobudur",
+                        DestinationLocation = "Magelang",
+                        DestinationImage = "/Images/borobudur.jpg",
+                        FullName = "Jane Smith",
+                        IdNumber = "0987654321",
+                        MobileNumber = "08198765432",
+                        BookingDate = new DateTime(2025, 12, 5),
+                        PaxCount = 3,
+                        TotalAmount = 1800000,
+                        Status = "Pending",
+                        CreatedAt = DateTime.Now.AddDays(-2)
                     }
                 };
 
@@ -359,6 +376,132 @@ namespace SplashGoJunpro.ViewModels
             {
                 MessageBox.Show(
                     $"Failed to search transactions: {ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+
+        /// <summary>
+        /// Process payment untuk transaksi pending
+        /// </summary>
+        public async Task ProcessPayment(object transactionObj)
+        {
+            try
+            {
+                if (!(transactionObj is BookingTransaction transaction))
+                {
+                    MessageBox.Show("Invalid transaction data", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                IsLoading = true;
+
+                // TODO: Implement payment logic
+                // Opsi 1: Navigate ke payment page
+                // NavigationService.Navigate(new PaymentPage(transaction));
+
+                // Opsi 2: Open payment gateway/dialog
+                // var paymentWindow = new PaymentWindow(transaction);
+                // var result = paymentWindow.ShowDialog();
+
+                // Opsi 3: Update status via API/Database
+                // var db = new NeonDb();
+                // string sql = @"UPDATE bookings SET status = 'Paid', updated_at = @UpdatedAt 
+                //                WHERE booking_id = @BookingId";
+                // var parameters = new Dictionary<string, object>
+                // {
+                //     { "@BookingId", transaction.BookingId },
+                //     { "@UpdatedAt", DateTime.Now }
+                // };
+                // await db.ExecuteAsync(sql, parameters);
+
+                // For demo purpose: simulate payment processing
+                await Task.Delay(1500);
+
+                // Update status di dummy data
+                transaction.Status = "Paid";
+
+                MessageBox.Show(
+                    $"Payment successful for order {transaction.OrderCode}!",
+                    "Success",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information
+                );
+
+                // Refresh transaction list
+                await RefreshTransactions();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Failed to process payment: {ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+
+        /// <summary>
+        /// Cancel transaksi pending
+        /// </summary>
+        public async Task CancelTransaction(object transactionObj)
+        {
+            try
+            {
+                if (!(transactionObj is BookingTransaction transaction))
+                {
+                    MessageBox.Show("Invalid transaction data", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                IsLoading = true;
+
+                // TODO: Update status ke cancelled di database
+                // var db = new NeonDb();
+                // string sql = @"UPDATE bookings 
+                //                SET status = 'Cancelled', 
+                //                    updated_at = @UpdatedAt 
+                //                WHERE booking_id = @BookingId";
+                // 
+                // var parameters = new Dictionary<string, object>
+                // {
+                //     { "@BookingId", transaction.BookingId },
+                //     { "@UpdatedAt", DateTime.Now }
+                // };
+                // 
+                // await db.ExecuteAsync(sql, parameters);
+
+                // For demo purpose: simulate cancellation
+                await Task.Delay(1000);
+
+                // Update status di dummy data
+                transaction.Status = "Cancelled";
+
+                MessageBox.Show(
+                    $"Transaction {transaction.OrderCode} has been cancelled successfully!",
+                    "Success",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information
+                );
+
+                // Refresh transaction list
+                await RefreshTransactions();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Failed to cancel transaction: {ex.Message}",
                     "Error",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error
@@ -550,8 +693,14 @@ namespace SplashGoJunpro.ViewModels
                 _status = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(StatusColor));
+                OnPropertyChanged(nameof(IsPending));
             }
         }
+
+        /// <summary>
+        /// Check if transaction status is pending
+        /// </summary>
+        public bool IsPending => Status?.Equals("Pending", StringComparison.OrdinalIgnoreCase) == true;
 
         /// <summary>
         /// Get status color based on status value

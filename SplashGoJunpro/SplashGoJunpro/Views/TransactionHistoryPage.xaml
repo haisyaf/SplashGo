@@ -38,6 +38,66 @@
             <Setter Property="Padding" Value="12,4"/>
             <Setter Property="HorizontalAlignment" Value="Right"/>
         </Style>
+
+        <!-- Action Button Style -->
+        <Style x:Key="ActionButtonStyle" TargetType="Button">
+            <Setter Property="FontFamily" Value="Inter"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="16,8"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Pay Button Style -->
+        <Style x:Key="PayButtonStyle" TargetType="Button" BasedOn="{StaticResource ActionButtonStyle}">
+            <Setter Property="Background" Value="#0066CC"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#0052A3"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Cancel Button Style -->
+        <Style x:Key="CancelButtonStyle" TargetType="Button" BasedOn="{StaticResource ActionButtonStyle}">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#E74C3C"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#E74C3C"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#FFF5F5"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </Page.Resources>
 
     <Grid Background="White">
@@ -207,7 +267,7 @@
                                     </StackPanel>
 
                                     <!-- PAX and Total Price -->
-                                    <Grid>
+                                    <Grid Margin="0,0,0,16">
                                         <TextBlock Text="{Binding PaxDisplay}"
                                                    FontSize="14"
                                                    FontWeight="Regular"
@@ -222,6 +282,27 @@
                                                    Foreground="{StaticResource PriceRed}"
                                                    HorizontalAlignment="Right"
                                                    VerticalAlignment="Center"/>
+                                    </Grid>
+
+                                    <!-- Action Buttons (Bayar & Cancel) - Only for Pending Status -->
+                                    <Grid Visibility="{Binding IsPending, Converter={StaticResource BoolToVisibilityConverter}}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="10"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <Button Grid.Column="0"
+                                                Content="Cancel"
+                                                Style="{StaticResource CancelButtonStyle}"
+                                                Click="CancelButton_Click"
+                                                Tag="{Binding}"/>
+
+                                        <Button Grid.Column="2"
+                                                Content="Bayar"
+                                                Style="{StaticResource PayButtonStyle}"
+                                                Click="PayButton_Click"
+                                                Tag="{Binding}"/>
                                     </Grid>
 
                                 </StackPanel>
