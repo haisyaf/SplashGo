@@ -182,7 +182,7 @@
                               Height="24" 
                               Stretch="Uniform"
                               Margin="0,0,10,0"/>
-                        <TextBlock Text="Buka pukul" 
+                        <TextBlock Text="{Binding CurrentDestination.TodayScheduleDisplay}" 
                                    FontSize="20"
                                    FontFamily="Inter"
                                    VerticalAlignment="Center"/>
@@ -196,7 +196,7 @@
                               Height="24" 
                               Stretch="Uniform"
                               Margin="0,0,10,0"/>
-                        <TextBlock Text="Punya aku" 
+                        <TextBlock Text="{Binding CurrentDestination.Owner}" 
                                    FontSize="20"
                                    FontFamily="Inter"
                                    VerticalAlignment="Center"/>
@@ -240,20 +240,25 @@
                                Margin="0,40,0,20"/>
 
                     <!-- Offer Tags -->
-                    <WrapPanel Margin="0,10,0,0">
-                        <Border Style="{StaticResource OfferTagStyle}" Margin="0,0,10,10">
-                            <TextBlock Text="Free WiFi" FontSize="16" FontFamily="Inter" Foreground="{StaticResource TextGray}"/>
-                        </Border>
-                        <Border Style="{StaticResource OfferTagStyle}" Margin="0,0,10,10">
-                            <TextBlock Text="Breakfast Included" FontSize="16" FontFamily="Inter" Foreground="{StaticResource TextGray}"/>
-                        </Border>
-                        <Border Style="{StaticResource OfferTagStyle}" Margin="0,0,10,10">
-                            <TextBlock Text="Swimming Pool" FontSize="16" FontFamily="Inter" Foreground="{StaticResource TextGray}"/>
-                        </Border>
-                        <Border Style="{StaticResource OfferTagStyle}" Margin="0,0,10,10">
-                            <TextBlock Text="Bathtub Available" FontSize="16" FontFamily="Inter" Foreground="{StaticResource TextGray}"/>
-                        </Border>
-                    </WrapPanel>
+                    <ItemsControl ItemsSource="{Binding CurrentDestination.Offer}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Margin="0,10,0,0" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Style="{StaticResource OfferTagStyle}" Margin="0,0,10,10">
+                                    <TextBlock 
+                                        Text="{Binding}" 
+                                        FontSize="16" 
+                                        FontFamily="Inter" 
+                                        Foreground="{StaticResource TextGray}"/>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                 </StackPanel>
             </Grid>
 

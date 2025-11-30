@@ -306,6 +306,7 @@
     <Compile Include="Converters\PlaceholderVisibilityConverter.cs" />
     <Compile Include="Data\NeonDB.cs" />
     <Compile Include="Helpers\PasswordBoxHelper.cs" />
+    <Compile Include="Models\DestinationSchedule.cs" />
     <Compile Include="Services\SessionManager.cs" />
     <Compile Include="ViewModels\DashboardViewModel.cs" />
     <Compile Include="ViewModels\DestinationDetailViewModel.cs" />
