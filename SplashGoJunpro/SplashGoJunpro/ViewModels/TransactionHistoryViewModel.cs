@@ -99,7 +99,6 @@ namespace SplashGoJunpro.ViewModels
             {
                 IsLoading = true;
 
-                // Check if user is logged in
                 if (!SessionManager.IsLoggedIn)
                 {
                     EmptyMessage = "Please login to view your transaction history";
@@ -107,121 +106,63 @@ namespace SplashGoJunpro.ViewModels
                     return;
                 }
 
-                // TODO: Query dari database untuk mengambil transaction history
-                // var db = new NeonDb();
-                // string sql = @"
-                //     SELECT 
-                //         b.booking_id,
-                //         b.order_code,
-                //         b.destination_id,
-                //         d.name as destination_name,
-                //         d.location as destination_location,
-                //         d.image_path as destination_image,
-                //         b.full_name,
-                //         b.id_number,
-                //         b.mobile_number,
-                //         b.booking_date,
-                //         b.pax_count,
-                //         b.total_amount,
-                //         b.status,
-                //         b.created_at
-                //     FROM bookings b
-                //     INNER JOIN destinations d ON b.destination_id = d.destination_id
-                //     WHERE b.user_id = @UserId
-                //     ORDER BY b.created_at DESC
-                // ";
-                // 
-                // var parameters = new Dictionary<string, object>
-                // {
-                //     { "@UserId", SessionManager.CurrentUser.UserId }
-                // };
-                // 
-                // var rows = await db.QueryAsync(sql, parameters);
-                // 
-                // var transactions = new ObservableCollection<BookingTransaction>();
-                // 
-                // foreach (var row in rows)
-                // {
-                //     transactions.Add(new BookingTransaction
-                //     {
-                //         BookingId = Convert.ToInt32(row["booking_id"]),
-                //         OrderCode = row["order_code"].ToString(),
-                //         DestinationId = Convert.ToInt32(row["destination_id"]),
-                //         DestinationName = row["destination_name"].ToString(),
-                //         DestinationLocation = row["destination_location"].ToString(),
-                //         DestinationImage = row["destination_image"].ToString(),
-                //         FullName = row["full_name"].ToString(),
-                //         IdNumber = row["id_number"].ToString(),
-                //         MobileNumber = row["mobile_number"].ToString(),
-                //         BookingDate = Convert.ToDateTime(row["booking_date"]),
-                //         PaxCount = Convert.ToInt32(row["pax_count"]),
-                //         TotalAmount = Convert.ToDecimal(row["total_amount"]),
-                //         Status = row["status"].ToString(),
-                //         CreatedAt = Convert.ToDateTime(row["created_at"])
-                //     });
-                // }
-                // 
-                // Transactions = transactions;
+                var db = new NeonDb();
+                string sql = @"
+                    SELECT 
+                        b.bookingid,
+                        b.order_code,
+                        b.destinationid,
+                        d.name AS destination_name,
+                        d.location AS destination_location,
+                        d.image_link AS destination_image,
+                        v.full_name,
+                        v.id_number,
+                        v.mobile_number,
+                        b.booking_date,
+                        b.amount AS pax_count,
+                        b.totalprice AS total_amount,
+                        b.status,
+                        b.created_at,
+                        b.snap_token
+                    FROM bookings b
+                    INNER JOIN destinations d ON b.destinationid = d.destinationid
+                    INNER JOIN visitors v ON v.booking_id = b.bookingid
+                    WHERE b.userid = @UserId
+                    ORDER BY b.created_at DESC
+                ";
 
-                // For now, generate dummy data for demonstration
-                await Task.Delay(1000); // Simulate database delay
-
-                var dummyTransactions = new ObservableCollection<BookingTransaction>
+                var parameters = new Dictionary<string, object>
                 {
-                    new BookingTransaction
-                    {
-                        BookingId = 1,
-                        OrderCode = "64_74U_4P4",
-                        DestinationId = 1,
-                        DestinationName = "Hotel Malioboro Tipe smth smth",
-                        DestinationLocation = "Lokasinya",
-                        DestinationImage = "/Images/malioboro.jpg",
-                        FullName = "John Doe",
-                        IdNumber = "1234567890",
-                        MobileNumber = "08123456789",
-                        BookingDate = new DateTime(2025, 11, 23),
-                        PaxCount = 2,
-                        TotalAmount = 2000000,
-                        Status = "Paid",
-                        CreatedAt = DateTime.Now.AddDays(-5)
-                    },
-                    new BookingTransaction
-                    {
-                        BookingId = 2,
-                        OrderCode = "64_74U_4P5",
-                        DestinationId = 2,
-                        DestinationName = "Pantai Parangtritis",
-                        DestinationLocation = "Bantul",
-                        DestinationImage = "/Images/parangtritis.jpg",
-                        FullName = "John Doe",
-                        IdNumber = "1234567890",
-                        MobileNumber = "08123456789",
-                        BookingDate = new DateTime(2025, 11, 15),
-                        PaxCount = 4,
-                        TotalAmount = 1500000,
-                        Status = "Pending",
-                        CreatedAt = DateTime.Now.AddDays(-10)
-                    },
-                    new BookingTransaction
-                    {
-                        BookingId = 3,
-                        OrderCode = "64_74U_4P6",
-                        DestinationId = 3,
-                        DestinationName = "Candi Borobudur",
-                        DestinationLocation = "Magelang",
-                        DestinationImage = "/Images/borobudur.jpg",
-                        FullName = "Jane Smith",
-                        IdNumber = "0987654321",
-                        MobileNumber = "08198765432",
-                        BookingDate = new DateTime(2025, 12, 5),
-                        PaxCount = 3,
-                        TotalAmount = 1800000,
-                        Status = "Pending",
-                        CreatedAt = DateTime.Now.AddDays(-2)
-                    }
+                    { "@UserId", SessionManager.CurrentUserId }
                 };
 
-                Transactions = dummyTransactions;
+                var rows = await db.QueryAsync(sql, parameters);
+
+                var transactions = new ObservableCollection<BookingTransaction>();
+
+                foreach (var row in rows)
+                {
+                    transactions.Add(new BookingTransaction
+                    {
+                        BookingId = Convert.ToInt32(row["bookingid"]),
+                        OrderCode = row["order_code"].ToString(),
+                        DestinationId = Convert.ToInt32(row["destinationid"]),
+                        DestinationName = row["destination_name"].ToString(),
+                        DestinationLocation = row["destination_location"].ToString(),
+                        DestinationImage = row["destination_image"].ToString(),
+                        FullName = row["full_name"].ToString(),
+                        IdNumber = row["id_number"].ToString(),
+                        MobileNumber = row["mobile_number"].ToString(),
+                        BookingDate = Convert.ToDateTime(row["booking_date"]),
+                        PaxCount = Convert.ToInt32(row["pax_count"]),
+                        TotalAmount = Convert.ToDecimal(row["total_amount"]),
+                        Status = row["status"].ToString(),
+                        CreatedAt = Convert.ToDateTime(row["created_at"]),
+                        SnapToken = row.ContainsKey("snap_token") ? row["snap_token"].ToString() : null
+                    });
+                }
+
+                Transactions = transactions;
 
                 if (Transactions.Count == 0)
                 {
@@ -230,12 +171,7 @@ namespace SplashGoJunpro.ViewModels
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Failed to load transaction history: {ex.Message}",
-                    "Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error
-                );
+                MessageBox.Show($"Failed to load transaction history: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 EmptyMessage = "Failed to load transactions";
                 Transactions = new ObservableCollection<BookingTransaction>();
             }
@@ -400,55 +336,23 @@ namespace SplashGoJunpro.ViewModels
                     return;
                 }
 
-                IsLoading = true;
+                if (string.IsNullOrEmpty(transaction.SnapToken))
+                {
+                    MessageBox.Show("No payment token found for this transaction.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
 
-                // TODO: Implement payment logic
-                // Opsi 1: Navigate ke payment page
-                // NavigationService.Navigate(new PaymentPage(transaction));
-
-                // Opsi 2: Open payment gateway/dialog
-                // var paymentWindow = new PaymentWindow(transaction);
-                // var result = paymentWindow.ShowDialog();
-
-                // Opsi 3: Update status via API/Database
-                // var db = new NeonDb();
-                // string sql = @"UPDATE bookings SET status = 'Paid', updated_at = @UpdatedAt 
-                //                WHERE booking_id = @BookingId";
-                // var parameters = new Dictionary<string, object>
-                // {
-                //     { "@BookingId", transaction.BookingId },
-                //     { "@UpdatedAt", DateTime.Now }
-                // };
-                // await db.ExecuteAsync(sql, parameters);
-
-                // For demo purpose: simulate payment processing
-                await Task.Delay(1500);
-
-                // Update status di dummy data
-                transaction.Status = "Paid";
-
-                MessageBox.Show(
-                    $"Payment successful for order {transaction.OrderCode}!",
-                    "Success",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information
-                );
-
-                // Refresh transaction list
-                await RefreshTransactions();
+                // Open Midtrans Snap in browser
+                string snapUrl = $"https://app.sandbox.midtrans.com/snap/v2/vtweb/{transaction.SnapToken}";
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = snapUrl,
+                    UseShellExecute = true
+                });
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Failed to process payment: {ex.Message}",
-                    "Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error
-                );
-            }
-            finally
-            {
-                IsLoading = false;
+                MessageBox.Show($"Failed to process payment: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -465,51 +369,28 @@ namespace SplashGoJunpro.ViewModels
                     return;
                 }
 
-                IsLoading = true;
+                var db = new NeonDb();
+                string sql = @"UPDATE bookings 
+                       SET status = 'Cancelled' 
+                       WHERE bookingid = @BookingId";
 
-                // TODO: Update status ke cancelled di database
-                // var db = new NeonDb();
-                // string sql = @"UPDATE bookings 
-                //                SET status = 'Cancelled', 
-                //                    updated_at = @UpdatedAt 
-                //                WHERE booking_id = @BookingId";
-                // 
-                // var parameters = new Dictionary<string, object>
-                // {
-                //     { "@BookingId", transaction.BookingId },
-                //     { "@UpdatedAt", DateTime.Now }
-                // };
-                // 
-                // await db.ExecuteAsync(sql, parameters);
+                var parameters = new Dictionary<string, object>
+                {
+                    { "@BookingId", transaction.BookingId },
+                    { "@UpdatedAt", DateTime.Now }
+                };
 
-                // For demo purpose: simulate cancellation
-                await Task.Delay(1000);
+                await db.ExecuteAsync(sql, parameters);
 
-                // Update status di dummy data
                 transaction.Status = "Cancelled";
 
-                MessageBox.Show(
-                    $"Transaction {transaction.OrderCode} has been cancelled successfully!",
-                    "Success",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information
-                );
+                MessageBox.Show($"Transaction {transaction.OrderCode} has been cancelled successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
 
-                // Refresh transaction list
                 await RefreshTransactions();
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Failed to cancel transaction: {ex.Message}",
-                    "Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error
-                );
-            }
-            finally
-            {
-                IsLoading = false;
+                MessageBox.Show($"Failed to cancel transaction: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -548,6 +429,17 @@ namespace SplashGoJunpro.ViewModels
         private decimal _totalAmount;
         private string _status;
         private DateTime _createdAt;
+        private string _snapToken;
+
+        public string SnapToken
+        {
+            get => _snapToken;
+            set
+            {
+                _snapToken = value;
+                OnPropertyChanged();
+            }
+        }
 
         public int BookingId
         {
