@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Navigation;
 using SplashGoJunpro.ViewModels;
 using SplashGoJunpro.Models;
 
@@ -31,8 +32,6 @@ namespace SplashGoJunpro.Views
             if (sender is Border border && border.Tag is AvailableDate selectedDate)
             {
                 _viewModel.SelectDate(selectedDate);
-
-                // Update visual state
                 UpdateDateButtonStyles();
             }
         }
@@ -43,7 +42,6 @@ namespace SplashGoJunpro.Views
         private void UpdateDateButtonStyles()
         {
             // TODO: Implement visual feedback for selected date
-            // You can iterate through ItemsControl and update Border styles
         }
 
         /// <summary>
@@ -67,52 +65,30 @@ namespace SplashGoJunpro.Views
         /// </summary>
         private void PayNow_Click(object sender, RoutedEventArgs e)
         {
-            // Validate inputs
             if (string.IsNullOrWhiteSpace(FullNameTextBox.Text))
             {
-                MessageBox.Show(
-                    "Please enter your full name.",
-                    "Validation Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning
-                );
+                MessageBox.Show("Please enter your full name.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(IdNumberTextBox.Text))
             {
-                MessageBox.Show(
-                    "Please enter your ID number.",
-                    "Validation Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning
-                );
+                MessageBox.Show("Please enter your ID number.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(MobileNumberTextBox.Text))
             {
-                MessageBox.Show(
-                    "Please enter your mobile number.",
-                    "Validation Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning
-                );
+                MessageBox.Show("Please enter your mobile number.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             if (_viewModel.SelectedDate == null)
             {
-                MessageBox.Show(
-                    "Please select a date.",
-                    "Validation Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning
-                );
+                MessageBox.Show("Please select a date.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            // Process payment
             var paymentData = new PaymentData
             {
                 FullName = FullNameTextBox.Text,
@@ -123,7 +99,8 @@ namespace SplashGoJunpro.Views
                 TotalAmount = _viewModel.TotalPriceValue
             };
 
-            _viewModel.ProcessPayment(paymentData);
+            // Pass NavigationService to avoid null dependencyObject error
+            _viewModel.ProcessPayment(paymentData, this.NavigationService);
         }
 
         /// <summary>
