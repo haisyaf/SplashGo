@@ -1,3 +1,2 @@
 [build]
-builder = "docker"
-dockerfile = "SplashGoJunpro.Api/SplashGoJunpro.Api/Dockerfile"
+dockerfilePath = "SplashGoJunpro.Api/SplashGoJunpro.Api/Dockerfile"
