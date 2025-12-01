@@ -2,18 +2,20 @@
 
 # This stage is used when running from VS in fast mode (Default for Debug configuration)
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-#$APP_UID
 WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
-
 
 # This stage is used to build the service project
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["SplashGoJunpro.Api/SplashGoJunpro.Api.csproj", "SplashGoJunpro.Api/"]
-RUN dotnet restore "./SplashGoJunpro.Api.csproj"
+
+# ❗ correct path to csproj based on your folder structure
+COPY ["SplashGoJunpro.Api/SplashGoJunpro.Api/SplashGoJunpro.Api.csproj", "SplashGoJunpro.Api/SplashGoJunpro.Api/"]
+
+RUN dotnet restore "./SplashGoJunpro.Api/SplashGoJunpro.Api/SplashGoJunpro.Api.csproj"
+
 COPY . .
 WORKDIR "/src/SplashGoJunpro.Api/SplashGoJunpro.Api"
 RUN dotnet build "./SplashGoJunpro.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
@@ -27,6 +29,7 @@ RUN dotnet publish "./SplashGoJunpro.Api.csproj" -c $BUILD_CONFIGURATION -o /app
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-# ❗ Railway uses PORT env variable → ASP.NET must listen on that port
+
+# Railway uses PORT → we set 8080
 ENV ASPNETCORE_URLS=http://0.0.0.0:8080
 ENTRYPOINT ["dotnet", "SplashGoJunpro.Api.dll"]
