@@ -1,4 +1,4 @@
 [build]
-builder = "docker"
-dockerfilePath = "SplashGoJunpro.Api/SplashGoJunpro.Api/Dockerfile"
-context = "SplashGoJunpro.Api"
+nixpacksPlan = false
+dockerfile = "SplashGoJunpro.Api/SplashGoJunpro.Api/Dockerfile"
+dockerContext = "SplashGoJunpro.Api"
