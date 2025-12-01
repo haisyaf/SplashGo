@@ -1,5 +1,2 @@
 [build]
 dockerfilePath = "SplashGoJunpro.Api/SplashGoJunpro.Api/Dockerfile"
-
-[deploy]
-startCommand = "dotnet SplashGoJunpro.Api.dll"
