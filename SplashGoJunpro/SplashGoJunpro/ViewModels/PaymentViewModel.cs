@@ -392,7 +392,7 @@ namespace SplashGoJunpro.ViewModels
                 {
                     transaction_details = new TransactionDetails
                     {
-                        order_id = $"BOOKING-{bookingId}-{DateTime.Now.Ticks}",
+                        order_id = orderCode,
                         gross_amount = (long)paymentData.TotalAmount
                     },
                     customer_details = new CustomerDetails
