@@ -12,7 +12,7 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
 # ❗ correct path to csproj based on your folder structure
-COPY ["SplashGoJunpro.Api/SplashGoJunpro.Api/SplashGoJunpro.Api.csproj", "SplashGoJunpro.Api/SplashGoJunpro.Api/"]
+COPY ["./SplashGoJunpro.Api.csproj", "SplashGoJunpro.Api/SplashGoJunpro.Api/"]
 
 RUN dotnet restore "./SplashGoJunpro.Api/SplashGoJunpro.Api/SplashGoJunpro.Api.csproj"
 
