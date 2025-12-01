@@ -1,8 +1,0 @@
-{
-  "build": {
-    "command": "dotnet restore SplashGoJunpro.Api/SplashGoJunpro.Api/SplashGoJunpro.Api.csproj && dotnet build SplashGoJunpro.Api/SplashGoJunpro.Api.csproj"
-  },
-  "start": {
-    "command": "dotnet run --project SplashGoJunpro.Api/SplashGoJunpro.Api/SplashGoJunpro.Api.csproj --urls http://0.0.0.0:$PORT"
-  }
-}

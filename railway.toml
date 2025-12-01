@@ -1,4 +1,0 @@
-[build]
-nixpacksPlan = false
-dockerfile = "SplashGoJunpro.Api/SplashGoJunpro.Api/Dockerfile"
-dockerContext = "SplashGoJunpro.Api"
