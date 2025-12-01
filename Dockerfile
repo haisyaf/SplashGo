@@ -12,7 +12,7 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["SplashGoJunpro.Api/SplashGoJunpro.Api/SplashGoJunpro.Api.csproj", "SplashGoJunpro.Api/SplashGoJunpro.Api/"]
+COPY ["SplashGoJunpro.Api/SplashGoJunpro.Api.csproj", "SplashGoJunpro.Api/SplashGoJunpro.Api/"]
 RUN dotnet restore "./SplashGoJunpro.Api.csproj"
 COPY . .
 WORKDIR "/src/SplashGoJunpro.Api/SplashGoJunpro.Api"
