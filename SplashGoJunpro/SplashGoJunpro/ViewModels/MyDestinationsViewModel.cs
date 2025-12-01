@@ -222,9 +222,11 @@ namespace SplashGoJunpro.ViewModels
                 // Insert to database
                 var db = new NeonDb();
                 string sql = @"
-                    INSERT INTO destinations (name, location, price, description, quota, category, offer, owner_id)
-                    VALUES (@Name, @Location, @Price, @Description, @Quota, @Category, @Offer::jsonb, @OwnerId)
+                    INSERT INTO destinations (name, location, price, description, quota, category, offer, owner_id, image_link)
+                    VALUES (@Name, @Location, @Price, @Description, @Quota, @Category, @Offer::jsonb, @OwnerId, @ImageLink)
                     RETURNING destinationid";
+
+                var imageLink = "/Images/hotel1.jpg"; // Placeholder for image link
 
                 var parameters = new Dictionary<string, object>
                 {
@@ -235,10 +237,40 @@ namespace SplashGoJunpro.ViewModels
                     { "@Quota", quota },
                     { "@Category", NewDestination.Category },
                     { "@Offer", offerJson },
-                    { "@OwnerId", SessionManager.CurrentUserId }
+                    { "@OwnerId", SessionManager.CurrentUserId },
+                    { "@ImageLink",imageLink}
                 };
 
                 var result = await db.QueryAsync(sql, parameters);
+
+                var destinationId = result != null && result.Count > 0
+                    ? Convert.ToInt32(result[0]["destinationid"])
+                    : (int?)null;
+
+                if (destinationId != null)
+                {
+                    string insertScheduleSql = @"
+                        INSERT INTO destination_schedules 
+                        (destination_id, day_of_week, open_time, close_time)
+                        VALUES (@DestinationId, @DayOfWeek, @OpenTime, @CloseTime);";
+
+                    TimeSpan defaultOpen = new TimeSpan(8, 0, 0);
+                    TimeSpan defaultClose = new TimeSpan(19, 0, 0);
+
+                    for (int day = 0; day <= 6; day++)
+                    {
+                        var scheduleParams = new Dictionary<string, object>
+                        {
+                            { "@DestinationId", destinationId },
+                            { "@DayOfWeek", day },
+                            { "@OpenTime", defaultOpen },
+                            { "@CloseTime", defaultClose }
+                        };
+
+                        await db.ExecuteAsync(insertScheduleSql, scheduleParams);  // FIXED
+                    }
+                }
+
 
                 if (result != null && result.Count > 0)
                 {
