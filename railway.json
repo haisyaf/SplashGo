@@ -1,4 +1,4 @@
 {
-  "build": "dotnet build SplashGoJunpro.Api/SplashGoJunpro.Api.csproj",
-  "start": "dotnet run --project SplashGoJunpro.Api/SplashGoJunpro.Api.csproj"
+  "build": "dotnet build SplashGoJunpro.Api/SplashGoJunpro.Api/SplashGoJunpro.Api.csproj",
+  "start": "dotnet run --project SplashGoJunpro.Api/SplashGoJunpro.Api/SplashGoJunpro.Api.csproj"
 }
