@@ -2,7 +2,7 @@
 {
     public class MidtransNotification
     {
-        public string order_code { get; set; }
+        public string order_id { get; set; }
         public string transaction_status { get; set; }
         public string payment_type { get; set; }
         public string gross_amount { get; set; }

@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using SplashGoJunpro.Api.Models;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SplashGoJunpro.Api.Data;
+using SplashGoJunpro.Api.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -8,9 +9,12 @@ using System.Threading.Tasks;
 [Route("api/[controller]")]
 public class PaymentController : ControllerBase
 {
+    [AllowAnonymous]
     [HttpPost("notification")]
     public async Task<IActionResult> Notification([FromBody] MidtransNotification notification)
     {
+        Console.WriteLine($"Received notification: {notification.order_id}, status: {notification.transaction_status}");
+
         string status = notification.transaction_status switch
         {
             "settlement" => "Paid",
@@ -25,10 +29,11 @@ public class PaymentController : ControllerBase
         var parameters = new Dictionary<string, object>
         {
             { "@Status", status },
-            { "@OrderCode", notification.order_code }
+            { "@OrderCode", notification.order_id } 
         };
 
-        await db.ExecuteAsync(sql, parameters);
+        int rows = await db.ExecuteAsync(sql, parameters);
+        Console.WriteLine($"Rows affected: {rows}");
 
         return Ok();
     }

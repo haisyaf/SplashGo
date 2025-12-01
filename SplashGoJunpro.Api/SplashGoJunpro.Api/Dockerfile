@@ -2,7 +2,7 @@
 
 # This stage is used when running from VS in fast mode (Default for Debug configuration)
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-USER $APP_UID
+#$APP_UID
 WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
@@ -27,4 +27,6 @@ RUN dotnet publish "./SplashGoJunpro.Api.csproj" -c $BUILD_CONFIGURATION -o /app
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+# ❗ Railway uses PORT env variable → ASP.NET must listen on that port
+ENV ASPNETCORE_URLS=http://0.0.0.0:8080
 ENTRYPOINT ["dotnet", "SplashGoJunpro.Api.dll"]
