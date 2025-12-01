@@ -612,6 +612,8 @@ namespace SplashGoJunpro.ViewModels
                         return "#FF9800";
                     case "cancelled":
                         return "#F44336";
+                    case "expired":
+                        return "#795548";
                     default:
                         return "#9E9E9E";
                 }

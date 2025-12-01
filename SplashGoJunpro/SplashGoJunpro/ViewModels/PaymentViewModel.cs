@@ -173,7 +173,9 @@ namespace SplashGoJunpro.ViewModels
                     string bookedSql = @"
                         SELECT COALESCE(SUM(pax_count), 0) AS total_booked
                         FROM bookings
-                        WHERE destinationid=@DestId AND date=@Date
+                        WHERE destinationid = @DestId 
+                          AND date = @Date
+                          AND LOWER(status) IN ('pending', 'paid')
                     ";
 
                     var bookedRows = await db.QueryAsync(
