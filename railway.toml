@@ -1,0 +1,4 @@
+[build]
+builder = "docker"
+dockerfilePath = "SplashGoJunpro.Api/SplashGoJunpro.Api/Dockerfile"
+context = "SplashGoJunpro.Api"
